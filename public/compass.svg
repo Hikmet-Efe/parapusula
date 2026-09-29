@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="compassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#10b981" />
+      <stop offset="100%" stop-color="#047857" />
+    </linearGradient>
+    <linearGradient id="needleNorth" x1="50" y1="15" x2="50" y2="50" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#34d399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="needleSouth" x1="50" y1="50" x2="50" y2="85" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#64748b" />
+      <stop offset="100%" stop-color="#334155" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="#0b1120" />
+  <circle cx="50" cy="50" r="38" stroke="url(#compassGrad)" stroke-width="4" stroke-dasharray="2 3" opacity="0.6"/>
+  <circle cx="50" cy="50" r="32" fill="#131e36" stroke="#10b981" stroke-width="2"/>
+  <!-- Compass Needle pointing to North (Prosperity/Savings) -->
+  <polygon points="50,18 43,50 50,45" fill="#10b981" />
+  <polygon points="50,18 57,50 50,45" fill="#34d399" />
+  <polygon points="50,82 43,50 50,55" fill="#475569" />
+  <polygon points="50,82 57,50 50,55" fill="#64748b" />
+  <!-- Center Pin with Turkish Lira sign style or star -->
+  <circle cx="50" cy="50" r="6" fill="#f8fafc" stroke="#047857" stroke-width="1.5" />
+  <circle cx="50" cy="50" r="2.5" fill="#047857" />
+</svg>

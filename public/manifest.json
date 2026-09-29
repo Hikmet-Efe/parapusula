@@ -1,0 +1,18 @@
+{
+  "name": "ParaPusula Bütçe Takip",
+  "short_name": "ParaPusula",
+  "description": "Günlük Dinamik Devirli Bütçe ve Tasarruf Takip Uygulaması",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#090d16",
+  "theme_color": "#059669",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/compass.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
