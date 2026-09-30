@@ -1,23 +1,23 @@
 // ======================================================================================
-// 💾 STORAGE ENGINE - ÇEVRİMDIŞI YEREL VERİTABANI MOTORU (LOCALSTORAGE)
+// 💾 STORAGE ENGINE - ÇEVRİMDIŞI YEREL VERİTABANI MOTORUM (LOCALSTORAGE)
 // ======================================================================================
-// NE YAPMAYA ÇALIŞIYORUZ?
-// ParaPusula sıfır sunucu (serverless) ve %100 çevrimdışı (offline-first) bir uygulamadır.
-// Kullanıcının maaşı, borçları ve harcamaları asla internetteki yabancı bir sunucuya gitmez.
-// Telefonun kendi güvenli web depolama alanında (HTML5 LocalStorage) JSON formatında saklanır.
-// Bu dosya, tüm okuma, yazma, yedekleme (export) ve geri yükleme (import) işlerini yönetir.
+// BURADA NE YAPMAYA ÇALIŞTIM?
+// ParaPusula'yı sıfır sunucu (serverless) ve %100 çevrimdışı (offline-first) olacak şekilde tasarladım.
+// Maaşım, borçlarım veya harcamalarım asla internetteki yabancı bir sunucuya gitmiyor.
+// Tamamen telefonumun kendi güvenli web hafızasında (HTML5 LocalStorage) JSON formatında saklanıyor.
+// Bu dosya ile tüm okuma, yazma, yedek alma (export) ve geri yükleme (import) işlerimi yönetiyorum.
 // ======================================================================================
 
-// 🔑 LocalStorage İçinde Kullandığımız Standart Anahtarlar (Keys)
+// 🔑 LocalStorage İçinde Kullandığım Standart Anahtarlarım (Keys)
 const STORAGE_KEYS = {
-  CONFIG: 'parapusula_config',       // Gelir, sabit giderler, hedef birikim
-  SPENDINGS: 'parapusula_spendings', // Gün gün harcamalar haritası
-  SETTINGS: 'parapusula_settings',   // Bildirim saati vb. ayarlar
-  DEBTS: 'parapusula_debts',         // Borçlar ve taksitler
-  ONBOARDED: 'parapusula_onboarded'  // Kullanıcı ilk sihirbazı tamamladı mı?
+  CONFIG: 'parapusula_config',       // Gelirim, sabit giderlerim, hedef birikimim
+  SPENDINGS: 'parapusula_spendings', // Gün gün girdiğim harcamaların haritası
+  SETTINGS: 'parapusula_settings',   // Bildirim saatim vb. tercihlerim
+  DEBTS: 'parapusula_debts',         // Borçlarım ve taksitlerim
+  ONBOARDED: 'parapusula_onboarded'  // İlk kurulum sihirbazını bitirdim mi?
 };
 
-// 📌 İlk kurulumda boş kalmasın diye sunulan şablon bütçe ayarları
+// 📌 İlk kurulumda boş kalmasın diye sunduğum şablon bütçe ayarlarım
 export const DEFAULT_CONFIG = {
   monthlyIncome: 35000,
   fixedExpenses: [
@@ -26,11 +26,11 @@ export const DEFAULT_CONFIG = {
     { id: '3', title: 'Ulaşım / Yakıt', amount: 2000 }
   ],
   targetSavings: 9000,
-  includeDebtsInFixedExpenses: true, // Borç ödemelerini bütçeye otomatik bağlama
+  includeDebtsInFixedExpenses: true, // Borç ödemelerimi bütçeye otomatik bağlama
   currency: '₺'
 };
 
-// 📌 İlk kurulumda sunulan örnek borç kalemi
+// 📌 İlk kurulumda sunduğum örnek taksit kalemi
 export const DEFAULT_DEBTS = [
   {
     id: '1',
@@ -45,17 +45,17 @@ export const DEFAULT_DEBTS = [
   }
 ];
 
-// 📌 Varsayılan bildirim ve ses ayarları
+// 📌 Varsayılan bildirim ve ses ayarlarım
 export const DEFAULT_SETTINGS = {
   notificationEnabled: true,
-  notificationTime: '23:00', // Her gece harcama hatırlatma saati
+  notificationTime: '23:00', // Her gece harcama hatırlatma saatim
   soundEnabled: true,
   hapticEnabled: true,       // Dokunma titreşimi
   lastNotificationDate: null
 };
 
 // --------------------------------------------------------------------------------------
-// 🧭 İLK KURULUM (ONBOARDING) KONTROLLERİ
+// 🧭 İLK KURULUM (ONBOARDING) KONTROLLERİM
 // --------------------------------------------------------------------------------------
 export function hasCompletedOnboarding() {
   try {
@@ -72,7 +72,7 @@ export function setOnboardingCompleted(completed = true) {
 }
 
 // --------------------------------------------------------------------------------------
-// ⚙️ BÜTÇE AYARLARINI (CONFIG) OKUMA VE YAZMA
+// ⚙️ BÜTÇE AYARLARIMI (CONFIG) OKUMA VE YAZMA
 // --------------------------------------------------------------------------------------
 export function loadBudgetConfig() {
   try {
@@ -80,7 +80,7 @@ export function loadBudgetConfig() {
     if (!raw) return DEFAULT_CONFIG;
     return { ...DEFAULT_CONFIG, ...JSON.parse(raw) };
   } catch (e) {
-    console.error('Error loading config:', e);
+    console.error('Bütçe ayarları yüklenirken hata:', e);
     return DEFAULT_CONFIG;
   }
 }
@@ -90,13 +90,13 @@ export function saveBudgetConfig(config) {
     localStorage.setItem(STORAGE_KEYS.CONFIG, JSON.stringify(config));
     return true;
   } catch (e) {
-    console.error('Error saving config:', e);
+    console.error('Bütçe ayarları kaydedilirken hata:', e);
     return false;
   }
 }
 
 // --------------------------------------------------------------------------------------
-// 🛒 HARCAMA HARİTASINI (SPENDINGS) OKUMA VE YAZMA
+// 🛒 HARCAMA HARİTAMI (SPENDINGS) OKUMA VE YAZMA
 // Format: { 'YYYY-MM-DD': [ { id, amount, time, note } ] }
 // --------------------------------------------------------------------------------------
 export function loadSpendings() {
@@ -104,7 +104,7 @@ export function loadSpendings() {
     const raw = localStorage.getItem(STORAGE_KEYS.SPENDINGS);
     return raw ? JSON.parse(raw) : {};
   } catch (e) {
-    console.error('Error loading spendings:', e);
+    console.error('Harcamalar yüklenirken hata:', e);
     return {};
   }
 }
@@ -114,13 +114,13 @@ export function saveSpendings(spendings) {
     localStorage.setItem(STORAGE_KEYS.SPENDINGS, JSON.stringify(spendings));
     return true;
   } catch (e) {
-    console.error('Error saving spendings:', e);
+    console.error('Harcamalar kaydedilirken hata:', e);
     return false;
   }
 }
 
 // --------------------------------------------------------------------------------------
-// 💳 BORÇ VE TAKSİTLERİ (DEBTS) OKUMA VE YAZMA
+// 💳 BORÇ VE TAKSİTLERİMİ (DEBTS) OKUMA VE YAZMA
 // --------------------------------------------------------------------------------------
 export function loadDebts() {
   try {
@@ -128,7 +128,7 @@ export function loadDebts() {
     if (!raw) return DEFAULT_DEBTS;
     return JSON.parse(raw);
   } catch (e) {
-    console.error('Error loading debts:', e);
+    console.error('Borçlar yüklenirken hata:', e);
     return DEFAULT_DEBTS;
   }
 }
@@ -138,13 +138,13 @@ export function saveDebts(debts) {
     localStorage.setItem(STORAGE_KEYS.DEBTS, JSON.stringify(debts));
     return true;
   } catch (e) {
-    console.error('Error saving debts:', e);
+    console.error('Borçlar kaydedilirken hata:', e);
     return false;
   }
 }
 
 // --------------------------------------------------------------------------------------
-// 🔔 KULLANICI AYARLARINI (SETTINGS) OKUMA VE YAZMA
+// 🔔 AYARLARIMI (SETTINGS) OKUMA VE YAZMA
 // --------------------------------------------------------------------------------------
 export function loadSettings() {
   try {
@@ -152,7 +152,7 @@ export function loadSettings() {
     if (!raw) return DEFAULT_SETTINGS;
     return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
   } catch (e) {
-    console.error('Error loading settings:', e);
+    console.error('Ayarlar yüklenirken hata:', e);
     return DEFAULT_SETTINGS;
   }
 }
@@ -162,13 +162,13 @@ export function saveSettings(settings) {
     localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
     return true;
   } catch (e) {
-    console.error('Error saving settings:', e);
+    console.error('Ayarlar kaydedilirken hata:', e);
     return false;
   }
 }
 
 // --------------------------------------------------------------------------------------
-// 📦 TÜM UYGULAMA VERİLERİNİ TEK BİR JSON DOSYASI OLARAK İNDİRME (YEDEK ALMA)
+// 📦 TÜM VERİLERİMİ TEK BİR JSON DOSYASI OLARAK YEDEKLEME (EXPORT)
 // --------------------------------------------------------------------------------------
 export function exportAllData() {
   const data = {
@@ -181,7 +181,7 @@ export function exportAllData() {
     onboarded: hasCompletedOnboarding()
   };
 
-  // JSON verisinden indirilebilir bir dosya (Blob) oluşturuyoruz
+  // İndirilebilir JSON dosyası üretiyorum
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -193,7 +193,7 @@ export function exportAllData() {
 }
 
 // --------------------------------------------------------------------------------------
-// 📥 DIŞARIDAN BİR YEDEK DOSYASINI YÜKLEME (GERİ YÜKLEME)
+// 📥 DIŞARIDAN YEDEK DOSYASINI YÜKLEME (IMPORT)
 // --------------------------------------------------------------------------------------
 export function importAllData(jsonString) {
   try {
@@ -205,7 +205,7 @@ export function importAllData(jsonString) {
     if (data.onboarded !== undefined) setOnboardingCompleted(data.onboarded);
     return { success: true };
   } catch (e) {
-    console.error('Failed to import backup:', e);
+    console.error('Yedek yükleme başarısız oldu:', e);
     return { success: false, error: e.message };
   }
 }

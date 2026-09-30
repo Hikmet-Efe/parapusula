@@ -1,11 +1,10 @@
 // ======================================================================================
 // 🌐 BUDGET CONTEXT - TÜM UYGULAMANIN MERKEZİ VERİ VE DURUM (STATE) YÖNETİMİ
 // ======================================================================================
-// NE YAPMAYA ÇALIŞIYORUZ?
-// React uygulamalarında verileri (Bütçe, Harcamalar, Borçlar, Ayarlar) her ekrana tek tek
-// taşımak (prop drilling) yerine, en tepede bir "Context" havuzu açarız.
-// Böylece uygulamanın herhangi bir yerindeki buton (örneğin Hızlı Harcama butonu),
-// doğrudan bu havuza erişip harcama ekleyebilir ve tüm ekranlar anında güncellenir.
+// BURADA NE YAPMAYA ÇALIŞTIM?
+// React'ta ekranlar arası veri taşırken prop karmaşası yaşamamak için en tepeye bir Context
+// havuzu kurdum. Böylece uygulamanın herhangi bir yerindeki buton (örneğin Hızlı Harcama)
+// bu havuza direkt erişip harcama ekleyebiliyor ve tüm ekranlarım anında güncelleniyor.
 // ======================================================================================
 
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
@@ -36,21 +35,21 @@ import {
 const BudgetContext = createContext(null);
 
 export function BudgetProvider({ children }) {
-  // 💾 Yerel Depolamadan (LocalStorage) İlk Verileri Yükle
-  const [config, setConfig] = useState(loadBudgetConfig);        // Gelir, sabit giderler, hedef birikim
-  const [spendings, setSpendings] = useState(loadSpendings);      // Günlük yapılan harcamaların haritası
-  const [settings, setSettings] = useState(loadSettings);        // Bildirim saati vb. kullanıcı tercihleri
-  const [debts, setDebts] = useState(loadDebts);                // Borç ve taksit listesi
+  // 💾 Telefonun hafızasından (LocalStorage) kayıtlı verilerimi çekiyorum
+  const [config, setConfig] = useState(loadBudgetConfig);        // Gelir, sabit giderlerim, hedef birikimim
+  const [spendings, setSpendings] = useState(loadSpendings);      // Gün gün girdiğim harcamalar
+  const [settings, setSettings] = useState(loadSettings);        // Bildirim saatim vb. tercihlerim
+  const [debts, setDebts] = useState(loadDebts);                // Kredi ve taksit listem
   const [permissionState, setPermissionState] = useState(getNotificationPermission);
 
-  // 🗓️ Görüntülenen Yıl ve Ay Seçimi (Kullanıcı önceki/sonraki aylara bakabilir)
+  // 🗓️ Görüntülediğim ay ve yıl (Önceki veya sonraki aylara bakabilmem için)
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1); // 1-12 arası
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1); // 1-12
 
-  // 🛡️ GÜVENLİK AĞI: Ay Ortası Başlangıç Günü Sabitleme
-  // Eğer kullanıcı uygulamaya ilk defa giriyorsa ve startDay henüz atanmamışsa,
-  // bugünün gününü başlangıç günü olarak mühürler. Böylece geçmiş 29 günün parası bugüne devredilmez.
+  // 🛡️ AKILLI ÖNLEM: Ay ortası başlangıç günümü otomatik mühürleme
+  // Uygulamayı ilk kez kurup ayın ortasında açtığımda, startDay henüz atanmamışsa
+  // bugünün tarihini başlangıç günü olarak kaydediyorum ki geçmiş 29 günün parası bugüne devretmesin.
   useEffect(() => {
     if (!config.startDay) {
       const now = new Date();
@@ -65,8 +64,8 @@ export function BudgetProvider({ children }) {
     }
   }, [config]);
 
-  // 💳 BORÇ VE TAKSİT İSTATİSTİKLERİNİ HESAPLAMA
-  // Borçların toplamını, bu ay ödenmesi gereken taksit tutarını ve kalan borç adedini bulur.
+  // 💳 BORÇ VE TAKSİT İSTATİSTİKLERİMİ HESAPLIYORUM
+  // Toplam borcum ne kadar, bu ay ne kadar taksit ödeyeceğim, kaç taksitim kaldı?
   const debtStats = useMemo(() => {
     let totalDebt = 0;
     let monthlyCommitment = 0;
@@ -97,9 +96,9 @@ export function BudgetProvider({ children }) {
     };
   }, [debts]);
 
-  // 🔗 BORÇLARI SABİT GİDERLERE OTOMATİK BAĞLAMA
-  // Eğer ayarlarda "Borçları bütçeye bağla" açıksa, aylık taksit toplamını otomatik olarak
-  // zorunlu sabit gider kalemi gibi bütçeden düşer.
+  // 🔗 BORÇLARI SABİT GİDERLERİME OTOMATİK BAĞLAMA SİSTEMİM
+  // Eğer ayarlardan borç bağlamayı açtıysam, bu ayki toplam taksit tutarını sanki kira veya fatura gibi
+  // zorunlu bir gider sayıp harçlığımdan peşinen düşüyorum. Böylece taksit param güvende kalıyor!
   const effectiveConfig = useMemo(() => {
     if (!config.includeDebtsInFixedExpenses || debtStats.monthlyCommitment === 0) {
       return config;
@@ -115,14 +114,14 @@ export function BudgetProvider({ children }) {
     };
   }, [config, debtStats.monthlyCommitment]);
 
-  // 🧮 CANLI BÜTÇE HESAPLAMA (useMemo ile optimize edildi)
-  // Harcama girildiğinde veya ay değiştirildiğinde dinamik devir motorunu anında yeniden çalıştırır.
+  // 🧮 CANLI BÜTÇE HESAPLAMAM
+  // Harcama eklediğimde veya ayı değiştirdiğimde tüm bütçe motorunu burada anında tetikliyorum.
   const budget = useMemo(() => {
     return calculateMonthBudget(effectiveConfig, spendings, selectedYear, selectedMonth);
   }, [effectiveConfig, spendings, selectedYear, selectedMonth]);
 
-  // ⏰ GECE BİLDİRİMİ ZAMANLAYICISI
-  // Her gece kullanıcının seçtiği saatte (örn. 23:00) o günkü kalan bakiyesini telefona bildirim olarak atar.
+  // ⏰ GECE BİLDİRİMİ SİSTEMİM
+  // Her gece belirlediğim saatte (örn. 23:00) telefonuma o gün kalan bakiyemi hatırlatmasını sağlıyorum.
   useEffect(() => {
     const unsubscribe = startNotificationScheduler(
       settings,
@@ -136,13 +135,13 @@ export function BudgetProvider({ children }) {
     return () => unsubscribe();
   }, [settings, budget.todayData.remainingBalance]);
 
-  // ➕ YENİ HARCAMA EKLEME (Titreşim destekli)
-  // Kullanıcı ana ekrandan veya hızlı çiplerden bir harcama girdiğinde çalışır.
+  // ➕ YENİ HARCAMA GİRME FONKSİYONUM (Titreşimli)
+  // Ekranda harcama girdiğim an hem telefona titreşim veriyorum hem de harcamayı günün tarihine işliyorum.
   const addExpense = (amount, note = '') => {
     const num = Math.abs(parseFloat(amount) || 0);
     if (num <= 0) return;
 
-    // Telefona hafif dokunma hissi (Haptic) ver
+    // Dokunma hissi (Haptic) veriyorum
     triggerHaptic('light');
 
     const dateKey = formatDateKey(new Date());
@@ -165,7 +164,7 @@ export function BudgetProvider({ children }) {
     saveSpendings(newSpendings);
   };
 
-  // ✏️ GEÇMİŞ BİR GÜNÜN TOPLAM HARCAMASINI DÜZENLEME
+  // ✏️ GEÇMİŞ BİR GÜNÜN HARCAMASINI DÜZELTME
   const setDaySpending = (dateKey, totalAmount) => {
     triggerHaptic('light');
     const num = Math.max(0, parseFloat(totalAmount) || 0);
@@ -177,7 +176,7 @@ export function BudgetProvider({ children }) {
     saveSpendings(newSpendings);
   };
 
-  // 💳 BORÇ İŞLEMLERİ (Ekleme, Güncelleme, Silme, Ödendi İşaretleme)
+  // 💳 BORÇ İŞLEMLERİM
   const addDebt = (debtItem) => {
     triggerHaptic('medium');
     const newDebt = {
@@ -222,7 +221,7 @@ export function BudgetProvider({ children }) {
     saveDebts(updated);
   };
 
-  // ⚙️ BÜTÇE VE AYARLARI GÜNCELLEME
+  // ⚙️ BÜTÇE VE AYARLARI KAYDETME
   const updateConfig = (newConfig) => {
     triggerHaptic('light');
     setConfig(newConfig);
@@ -235,7 +234,7 @@ export function BudgetProvider({ children }) {
     saveSettings(newSettings);
   };
 
-  // 🔔 BİLDİRİM İZNİ VE TESTİ
+  // 🔔 BİLDİRİM İZNİ ALMA
   const enableNotifications = async () => {
     const granted = await requestNotificationPermission();
     setPermissionState(getNotificationPermission());
@@ -254,7 +253,7 @@ export function BudgetProvider({ children }) {
     );
   };
 
-  // ◀️ ▶️ AYLAR ARASI GEZİNME (Geçmiş ve gelecek aylara bakma)
+  // ◀️ ▶️ AYLAR ARASI GEÇİŞ YAPMA
   const prevMonth = () => {
     triggerHaptic('light');
     if (selectedMonth === 1) {
@@ -282,7 +281,7 @@ export function BudgetProvider({ children }) {
     setSelectedMonth(now.getMonth() + 1);
   };
 
-  // 📦 YEDEKLEME VE GERİ YÜKLEME (JSON İle Dışa/İçe Aktar)
+  // 📦 YEDEK ALMA VE YEDEK YÜKLEME SİSTEMİM (JSON)
   const handleExport = () => {
     triggerHaptic('medium');
     exportAllData();
@@ -334,7 +333,7 @@ export function BudgetProvider({ children }) {
   );
 }
 
-// 🪝 Kolay erişim için özel React Hook'u
+// 🪝 Kolayca erişmek için yazdığım özel React Hook'um
 export function useBudget() {
   const context = useContext(BudgetContext);
   if (!context) {
