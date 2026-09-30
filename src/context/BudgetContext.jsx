@@ -36,6 +36,21 @@ export function BudgetProvider({ children }) {
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1); // 1-12
 
+  // Auto-pin startDay to today if missing so mid-month users don't get 30 days of accumulated fake rollover
+  useEffect(() => {
+    if (!config.startDay) {
+      const now = new Date();
+      const updated = {
+        ...config,
+        startDay: now.getDate(),
+        startMonth: now.getMonth() + 1,
+        startYear: now.getFullYear()
+      };
+      setConfig(updated);
+      saveBudgetConfig(updated);
+    }
+  }, [config]);
+
   // Calculate total monthly debt commitments
   const debtStats = useMemo(() => {
     let totalDebt = 0;

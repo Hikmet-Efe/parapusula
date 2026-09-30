@@ -16,15 +16,16 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useBudget } from '../context/BudgetContext';
-import { formatCurrency, calculateTotalFixed } from '../utils/calculations';
+import { formatCurrency, calculateTotalFixed, parseCleanNumber, getDaysInMonth } from '../utils/calculations';
 import { triggerHaptic } from '../utils/notifications';
+import { hasCompletedOnboarding } from '../db/storage';
 
 export default function OnboardingModal({ isOpen, onComplete }) {
   const { config, updateConfig, settings, updateSettings, enableNotifications, budget } = useBudget();
 
   const [step, setStep] = useState(1);
-  const [income, setIncome] = useState(config.monthlyIncome || '');
-  const [targetSavings, setTargetSavings] = useState(config.targetSavings || '');
+  const [income, setIncome] = useState(hasCompletedOnboarding() ? (config.monthlyIncome || '') : '');
+  const [targetSavings, setTargetSavings] = useState(hasCompletedOnboarding() ? (config.targetSavings || '') : '');
   const [notificationTime, setNotificationTime] = useState(settings.notificationTime || '23:00');
   const [fixedExpenses, setFixedExpenses] = useState(config.fixedExpenses || [
     { id: '1', title: 'Ev Kirası / Aidat', amount: 15000 },
@@ -36,15 +37,20 @@ export default function OnboardingModal({ isOpen, onComplete }) {
 
   if (!isOpen) return null;
 
-  const numIncome = parseFloat(income) || 0;
-  const numSavings = parseFloat(targetSavings) || 0;
+  const numIncome = parseCleanNumber(income);
+  const numSavings = parseCleanNumber(targetSavings);
   const totalFixed = calculateTotalFixed(fixedExpenses);
   const freeBudget = Math.max(0, numIncome - totalFixed - numSavings);
-  const daysInMonth = budget.totalDays || 30;
-  const dailyBase = daysInMonth > 0 ? freeBudget / daysInMonth : 0;
+  
+  const now = new Date();
+  const currentDay = now.getDate();
+  const totalDays = getDaysInMonth(now.getFullYear(), now.getMonth() + 1);
+  const activeDaysCount = Math.max(1, totalDays - currentDay + 1);
+  const standardDailyBase = totalDays > 0 ? freeBudget / totalDays : 0;
+  const initialRemainingBudget = activeDaysCount * standardDailyBase;
 
   const handleAddFixed = () => {
-    const val = parseFloat(newAmount) || 0;
+    const val = parseCleanNumber(newAmount);
     if (newTitle.trim() && val > 0) {
       triggerHaptic('light');
       setFixedExpenses([
@@ -74,12 +80,16 @@ export default function OnboardingModal({ isOpen, onComplete }) {
   const handleFinish = async () => {
     triggerHaptic('medium');
     
-    // Save budget configuration
+    const today = new Date();
+    // Save budget configuration with explicit startDay!
     updateConfig({
       ...config,
       monthlyIncome: numIncome,
       fixedExpenses,
-      targetSavings: numSavings
+      targetSavings: numSavings,
+      startDay: today.getDate(),
+      startMonth: today.getMonth() + 1,
+      startYear: today.getFullYear()
     });
 
     // Save notification time
@@ -143,17 +153,17 @@ export default function OnboardingModal({ isOpen, onComplete }) {
               <div className="relative flex items-center">
                 <span className="absolute left-3.5 text-lg font-extrabold text-emerald-400">₺</span>
                 <input
-                  type="number"
-                  inputMode="decimal"
+                  type="text"
+                  inputMode="numeric"
                   autoFocus
                   value={income}
                   onChange={(e) => setIncome(e.target.value)}
-                  placeholder="35000"
+                  placeholder="Örn: 35000"
                   className="w-full pl-10 pr-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-xl font-black text-white outline-none focus:border-emerald-500 transition"
                 />
               </div>
-              <p className="text-[11px] text-slate-500 mt-2">
-                Maaş, ek gelirler veya ortalama aylık bütçeniz.
+              <p className="text-[11px] text-slate-400 mt-2">
+                📅 Bugün ayın <strong>{currentDay}. günü</strong>. Bütçeniz ay başından değil, bugünden ay sonuna kadar olan <strong>{activeDaysCount} gün</strong> üzerinden başlatılacak.
               </p>
             </div>
 
@@ -212,8 +222,8 @@ export default function OnboardingModal({ isOpen, onComplete }) {
                   className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-semibold text-white outline-none focus:border-amber-400"
                 />
                 <input
-                  type="number"
-                  inputMode="decimal"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="Tutar (₺)"
                   value={newAmount}
                   onChange={(e) => setNewAmount(e.target.value)}
@@ -270,11 +280,11 @@ export default function OnboardingModal({ isOpen, onComplete }) {
               <div className="relative flex items-center">
                 <span className="absolute left-3.5 text-base font-extrabold text-blue-400">₺</span>
                 <input
-                  type="number"
-                  inputMode="decimal"
+                  type="text"
+                  inputMode="numeric"
                   value={targetSavings}
                   onChange={(e) => setTargetSavings(e.target.value)}
-                  placeholder="9000"
+                  placeholder="Örn: 5000"
                   className="w-full pl-9 pr-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-base font-extrabold text-white outline-none focus:border-blue-400 transition"
                 />
               </div>
@@ -319,14 +329,14 @@ export default function OnboardingModal({ isOpen, onComplete }) {
                 Pusulanız Hazır!
               </h3>
               <p className="text-xs text-slate-400 mt-1 max-w-xs mx-auto">
-                Tüm hesaplamalar yapıldı. İşte aylık harcama pusulanız:
+                Tüm hesaplamalar yapıldı. İşte harcama pusulanız:
               </p>
             </div>
 
             {/* Calculated Plan Preview */}
             <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30 space-y-3">
               <div className="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
-                <span className="text-xs text-slate-400">Net Serbest Bütçe:</span>
+                <span className="text-xs text-slate-400">Net Aylık Serbest Bütçe:</span>
                 <span className="text-base font-black text-white">{formatCurrency(freeBudget)}</span>
               </div>
 
@@ -335,13 +345,21 @@ export default function OnboardingModal({ isOpen, onComplete }) {
                 <span className="text-base font-extrabold text-blue-400">{formatCurrency(numSavings)}</span>
               </div>
 
+              <div className="flex justify-between items-center border-b border-slate-800/80 pb-2.5">
+                <div>
+                  <span className="text-xs text-slate-400 block">Bu Ay Kalan Bütçen:</span>
+                  <span className="text-[10px] text-slate-500">Bugünden ay sonuna ({activeDaysCount} gün)</span>
+                </div>
+                <span className="text-base font-extrabold text-amber-400">{formatCurrency(initialRemainingBudget)}</span>
+              </div>
+
               <div className="flex justify-between items-center pt-1">
                 <div>
-                  <span className="text-xs font-bold text-emerald-400 block">Günlük Taban Harçlığın:</span>
+                  <span className="text-xs font-bold text-emerald-400 block">Bugünkü Harçlığın:</span>
                   <span className="text-[10px] text-slate-500">Kalan günlere devirli</span>
                 </div>
                 <span className="text-xl font-black text-emerald-400">
-                  {formatCurrency(dailyBase)} <span className="text-xs text-slate-400 font-normal">/ gün</span>
+                  {formatCurrency(standardDailyBase)} <span className="text-xs text-slate-400 font-normal">/ gün</span>
                 </span>
               </div>
             </div>

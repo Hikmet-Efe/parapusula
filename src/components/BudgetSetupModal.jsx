@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Check, Plus, Trash2, Sliders, PiggyBank, Receipt, DollarSign } from 'lucide-react';
 import { useBudget } from '../context/BudgetContext';
-import { formatCurrency, calculateTotalFixed } from '../utils/calculations';
+import { formatCurrency, calculateTotalFixed, parseCleanNumber } from '../utils/calculations';
 import { triggerHaptic } from '../utils/notifications';
 
 export default function BudgetSetupModal({ isOpen, onClose }) {
@@ -17,8 +17,8 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
 
   if (!isOpen) return null;
 
-  const numIncome = parseFloat(income) || 0;
-  const numSavings = parseFloat(targetSavings) || 0;
+  const numIncome = parseCleanNumber(income);
+  const numSavings = parseCleanNumber(targetSavings);
   const totalFixed = calculateTotalFixed(fixedExpenses);
   const freeBudget = Math.max(0, numIncome - totalFixed - numSavings);
   const dailyBase = budget.totalDays > 0 ? freeBudget / budget.totalDays : 0;
@@ -26,7 +26,7 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
 
   const handleAddFixedItem = (e) => {
     e?.preventDefault();
-    const val = parseFloat(newAmount) || 0;
+    const val = parseCleanNumber(newAmount);
     if (newTitle.trim() && val > 0) {
       triggerHaptic('light');
       setFixedExpenses([
@@ -45,8 +45,12 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
 
   const handleSaveAll = () => {
     triggerHaptic('medium');
+    const today = new Date();
     updateConfig({
       ...config,
+      startDay: config.startDay || today.getDate(),
+      startMonth: config.startMonth || (today.getMonth() + 1),
+      startYear: config.startYear || today.getFullYear(),
       monthlyIncome: numIncome,
       fixedExpenses,
       targetSavings: numSavings
@@ -108,8 +112,8 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
             <div className="relative flex items-center">
               <span className="absolute left-3.5 text-sm font-bold text-emerald-400">₺</span>
               <input
-                type="number"
-                inputMode="decimal"
+                type="text"
+                inputMode="numeric"
                 value={income}
                 onChange={(e) => setIncome(e.target.value)}
                 placeholder="Örn: 35000"
@@ -134,8 +138,8 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
             <div className="relative flex items-center">
               <span className="absolute left-3.5 text-sm font-bold text-blue-400">₺</span>
               <input
-                type="number"
-                inputMode="decimal"
+                type="text"
+                inputMode="numeric"
                 value={targetSavings}
                 onChange={(e) => setTargetSavings(e.target.value)}
                 placeholder="Örn: 9000"
@@ -196,8 +200,8 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
                 <div className="relative">
                   <span className="absolute left-2.5 top-2 text-xs font-bold text-amber-400">₺</span>
                   <input
-                    type="number"
-                    inputMode="decimal"
+                    type="text"
+                    inputMode="numeric"
                     value={newAmount}
                     onChange={(e) => setNewAmount(e.target.value)}
                     placeholder="Tutar (Örn: 1500)"
