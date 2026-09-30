@@ -1,27 +1,43 @@
+// ======================================================================================
+// 💳 DAILY HERO CARD - ANA SAYFA DEV BÜTÇE KARTI VE HIZLI HARCAMA BİLEŞENİ
+// ======================================================================================
+// NE YAPMAYA ÇALIŞIYORUZ?
+// Kullanıcı uygulamayı açtığı ilk 2 saniyede tek bir soruya net cevap arar:
+// "Bugün cebimde harcayabileceğim tam olarak kaç liram var?"
+// Bu kart o cevabı devasa puntolarla verir. Ayrıca dünden kalan devri, günlük taban hakkı,
+// bugün harcanan tutarı ve tek tıkla (+₺20, +₺50, +₺100, +₺200) harcama eklemeyi sağlar.
+// ======================================================================================
+
 import React from 'react';
 import { 
   PlusCircle, 
   Wallet, 
   TrendingUp, 
-  TrendingDown,
-  Sparkles,
-  AlertTriangle,
-  Zap
+  TrendingDown, 
+  Sparkles, 
+  AlertTriangle, 
+  Zap 
 } from 'lucide-react';
 import { useBudget } from '../context/BudgetContext';
 import { formatCurrency } from '../utils/calculations';
 import { triggerHaptic } from '../utils/notifications';
 
 export default function DailyHeroCard({ onOpenQuickExpense }) {
+  // Merkezi Context'ten bugünün hesaplanmış bütçe verilerini ve harcama ekleme fonksiyonunu çekiyoruz
   const { budget, addExpense } = useBudget();
   const { todayData, baseDailyAllowance } = budget;
 
-  const remaining = todayData.remainingBalance;
-  const spent = todayData.spent;
-  const base = todayData.baseAllowance;
-  const rolloverFromYesterday = todayData.startingBalance - base;
+  // 1. Kartta göstereceğimiz 4 kritik sayısal değer:
+  const remaining = todayData.remainingBalance;                     // Bugün harcanabilir net para (Kalan)
+  const spent = todayData.spent;                                   // Bugün şu ana kadar harcanan
+  const base = todayData.baseAllowance;                            // Günlük standart taban harçlık
+  const rolloverFromYesterday = todayData.startingBalance - base;  // Dünden devreden para (+ veya -)
 
-  // Visual color scheme
+  // 2. 🎨 DİNAMİK RENK VE TEMA DEĞİŞİMİ:
+  // Kullanıcının bütçe durumuna göre kartın parlamasını ve metin rengini değiştiriyoruz:
+  // - Yeşil: Bütçe harika, her şey yolunda!
+  // - Sarı: Günlük limitin %40'ının altına indi, dikkat etmeli!
+  // - Kırmızı: Günlük limit aşıldı! Fazla harcanan tutar yarına negatif devredecek.
   let glowClass = 'glow-emerald border-emerald-500/30 bg-gradient-to-b from-slate-900/95 via-slate-900/80 to-emerald-950/20';
   let badgeText = 'Bütçe Harika';
   let badgeColor = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
@@ -39,8 +55,9 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
     balanceTextColor = 'text-amber-400';
   }
 
+  // 3. ⚡ TEK DOKUNUŞLA HIZLI HARCAMA ÇİPİ (Kahve, su, fırın vb. küçük harcamalar için)
   const handleChipClick = (amount) => {
-    triggerHaptic('light');
+    triggerHaptic('light'); // Telefona hafif titreşim ver
     addExpense(amount, 'Hızlı Ekleme');
   };
 
@@ -48,11 +65,11 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
 
   return (
     <div className={`w-full rounded-3xl p-6 sm:p-8 border transition-all duration-300 relative overflow-hidden shadow-2xl ${glowClass}`}>
-      {/* Subtle Background Glows */}
+      {/* Arka plan yumuşak neon ışık efektleri */}
       <div className="absolute -right-16 -top-16 w-56 h-56 rounded-full bg-emerald-500/10 blur-3xl pointer-events-none" />
       <div className="absolute -left-16 -bottom-16 w-56 h-56 rounded-full bg-blue-500/10 blur-3xl pointer-events-none" />
 
-      {/* Top Header & Status Badge */}
+      {/* Üst Başlık & Sağ Üstteki Durum Rozeti */}
       <div className="flex items-center justify-between gap-2 mb-4">
         <div className="flex items-center gap-2">
           <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
@@ -70,7 +87,7 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
         </div>
       </div>
 
-      {/* Hero Balance Number */}
+      {/* 🚀 DEV BAKİYE SAYISI (Günün Odak Noktası) */}
       <div className="my-3">
         <div className={`text-4xl sm:text-6xl font-black tracking-tight ${balanceTextColor} flex items-baseline gap-1.5`}>
           <span>{formatCurrency(remaining)}</span>
@@ -82,9 +99,10 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
         </p>
       </div>
 
-      {/* 3 Metric Cards with comfortable padding */}
+      {/* 📊 3'LÜ MİNİ GÖSTERGE PANELİ (Taban Hak, Dünden Devir, Bugün Harcanan) */}
       <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mt-7 pt-5 border-t border-slate-800/80">
-        {/* Taban Günlük Hak */}
+        
+        {/* 1. Taban Günlük Hak */}
         <div className="bg-slate-950/50 rounded-2xl p-3 sm:p-4 border border-slate-800/60 text-center sm:text-left">
           <span className="text-[11px] text-slate-400 block font-medium">Günlük Taban Hak</span>
           <span className="text-sm sm:text-base font-bold text-slate-200 mt-1 block">
@@ -92,7 +110,7 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
           </span>
         </div>
 
-        {/* Dünden Devreden */}
+        {/* 2. Dünden Devreden Bakiye */}
         <div className="bg-slate-950/50 rounded-2xl p-3 sm:p-4 border border-slate-800/60 text-center sm:text-left">
           <div className="flex items-center justify-center sm:justify-start gap-1">
             <span className="text-[11px] text-slate-400 font-medium">Dünden Devir</span>
@@ -107,7 +125,7 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
           </span>
         </div>
 
-        {/* Bugün Harcanan */}
+        {/* 3. Bugün Harcanan Toplam */}
         <div className="bg-slate-950/50 rounded-2xl p-3 sm:p-4 border border-slate-800/60 text-center sm:text-left">
           <span className="text-[11px] text-slate-400 block font-medium">Bugün Harcanan</span>
           <span className="text-sm sm:text-base font-bold text-slate-200 mt-1 block">
@@ -116,12 +134,12 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
         </div>
       </div>
 
-      {/* Quick Add Expense Action & Quick Chips */}
+      {/* 🛒 HIZLI HARCAMA BUTONU VE 1 DOKUNUŞLUK ÇİPLER */}
       <div className="mt-7 flex flex-col sm:flex-row items-center gap-3">
         <button
           onClick={() => {
             triggerHaptic('light');
-            onOpenQuickExpense();
+            onOpenQuickExpense(); // Detaylı harcama popup'ını aç
           }}
           className="w-full sm:flex-1 py-4 px-6 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 active:scale-[0.98] text-slate-950 font-extrabold text-base flex items-center justify-center gap-2.5 shadow-xl shadow-emerald-500/25 transition cursor-pointer"
         >
@@ -129,7 +147,7 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
           <span>Hızlı Harcama Gir</span>
         </button>
 
-        {/* 1-Tap Quick Increment Chips */}
+        {/* Hızlı Ekleme Çipleri: +₺20, +₺50, +₺100, +₺200 */}
         <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
           {quickChips.map((amount) => (
             <button

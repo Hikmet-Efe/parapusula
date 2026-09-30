@@ -1,3 +1,13 @@
+// ======================================================================================
+// 🌐 BUDGET CONTEXT - TÜM UYGULAMANIN MERKEZİ VERİ VE DURUM (STATE) YÖNETİMİ
+// ======================================================================================
+// NE YAPMAYA ÇALIŞIYORUZ?
+// React uygulamalarında verileri (Bütçe, Harcamalar, Borçlar, Ayarlar) her ekrana tek tek
+// taşımak (prop drilling) yerine, en tepede bir "Context" havuzu açarız.
+// Böylece uygulamanın herhangi bir yerindeki buton (örneğin Hızlı Harcama butonu),
+// doğrudan bu havuza erişip harcama ekleyebilir ve tüm ekranlar anında güncellenir.
+// ======================================================================================
+
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import {
   loadBudgetConfig,
@@ -26,17 +36,21 @@ import {
 const BudgetContext = createContext(null);
 
 export function BudgetProvider({ children }) {
-  const [config, setConfig] = useState(loadBudgetConfig);
-  const [spendings, setSpendings] = useState(loadSpendings);
-  const [settings, setSettings] = useState(loadSettings);
-  const [debts, setDebts] = useState(loadDebts);
+  // 💾 Yerel Depolamadan (LocalStorage) İlk Verileri Yükle
+  const [config, setConfig] = useState(loadBudgetConfig);        // Gelir, sabit giderler, hedef birikim
+  const [spendings, setSpendings] = useState(loadSpendings);      // Günlük yapılan harcamaların haritası
+  const [settings, setSettings] = useState(loadSettings);        // Bildirim saati vb. kullanıcı tercihleri
+  const [debts, setDebts] = useState(loadDebts);                // Borç ve taksit listesi
   const [permissionState, setPermissionState] = useState(getNotificationPermission);
 
+  // 🗓️ Görüntülenen Yıl ve Ay Seçimi (Kullanıcı önceki/sonraki aylara bakabilir)
   const today = new Date();
   const [selectedYear, setSelectedYear] = useState(today.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1); // 1-12
+  const [selectedMonth, setSelectedMonth] = useState(today.getMonth() + 1); // 1-12 arası
 
-  // Auto-pin startDay to today if missing so mid-month users don't get 30 days of accumulated fake rollover
+  // 🛡️ GÜVENLİK AĞI: Ay Ortası Başlangıç Günü Sabitleme
+  // Eğer kullanıcı uygulamaya ilk defa giriyorsa ve startDay henüz atanmamışsa,
+  // bugünün gününü başlangıç günü olarak mühürler. Böylece geçmiş 29 günün parası bugüne devredilmez.
   useEffect(() => {
     if (!config.startDay) {
       const now = new Date();
@@ -51,7 +65,8 @@ export function BudgetProvider({ children }) {
     }
   }, [config]);
 
-  // Calculate total monthly debt commitments
+  // 💳 BORÇ VE TAKSİT İSTATİSTİKLERİNİ HESAPLAMA
+  // Borçların toplamını, bu ay ödenmesi gereken taksit tutarını ve kalan borç adedini bulur.
   const debtStats = useMemo(() => {
     let totalDebt = 0;
     let monthlyCommitment = 0;
@@ -82,7 +97,9 @@ export function BudgetProvider({ children }) {
     };
   }, [debts]);
 
-  // Merge debt commitments into budget config if includeDebtsInFixedExpenses is enabled
+  // 🔗 BORÇLARI SABİT GİDERLERE OTOMATİK BAĞLAMA
+  // Eğer ayarlarda "Borçları bütçeye bağla" açıksa, aylık taksit toplamını otomatik olarak
+  // zorunlu sabit gider kalemi gibi bütçeden düşer.
   const effectiveConfig = useMemo(() => {
     if (!config.includeDebtsInFixedExpenses || debtStats.monthlyCommitment === 0) {
       return config;
@@ -98,12 +115,14 @@ export function BudgetProvider({ children }) {
     };
   }, [config, debtStats.monthlyCommitment]);
 
-  // Re-calculate the budget and dynamic rollover
+  // 🧮 CANLI BÜTÇE HESAPLAMA (useMemo ile optimize edildi)
+  // Harcama girildiğinde veya ay değiştirildiğinde dinamik devir motorunu anında yeniden çalıştırır.
   const budget = useMemo(() => {
     return calculateMonthBudget(effectiveConfig, spendings, selectedYear, selectedMonth);
   }, [effectiveConfig, spendings, selectedYear, selectedMonth]);
 
-  // Nightly notification scheduler effect
+  // ⏰ GECE BİLDİRİMİ ZAMANLAYICISI
+  // Her gece kullanıcının seçtiği saatte (örn. 23:00) o günkü kalan bakiyesini telefona bildirim olarak atar.
   useEffect(() => {
     const unsubscribe = startNotificationScheduler(
       settings,
@@ -117,11 +136,13 @@ export function BudgetProvider({ children }) {
     return () => unsubscribe();
   }, [settings, budget.todayData.remainingBalance]);
 
-  // Add an expense with haptic vibration
+  // ➕ YENİ HARCAMA EKLEME (Titreşim destekli)
+  // Kullanıcı ana ekrandan veya hızlı çiplerden bir harcama girdiğinde çalışır.
   const addExpense = (amount, note = '') => {
     const num = Math.abs(parseFloat(amount) || 0);
     if (num <= 0) return;
 
+    // Telefona hafif dokunma hissi (Haptic) ver
     triggerHaptic('light');
 
     const dateKey = formatDateKey(new Date());
@@ -144,7 +165,7 @@ export function BudgetProvider({ children }) {
     saveSpendings(newSpendings);
   };
 
-  // Override total spending for a specific day
+  // ✏️ GEÇMİŞ BİR GÜNÜN TOPLAM HARCAMASINI DÜZENLEME
   const setDaySpending = (dateKey, totalAmount) => {
     triggerHaptic('light');
     const num = Math.max(0, parseFloat(totalAmount) || 0);
@@ -156,7 +177,7 @@ export function BudgetProvider({ children }) {
     saveSpendings(newSpendings);
   };
 
-  // Debt Operations
+  // 💳 BORÇ İŞLEMLERİ (Ekleme, Güncelleme, Silme, Ödendi İşaretleme)
   const addDebt = (debtItem) => {
     triggerHaptic('medium');
     const newDebt = {
@@ -201,21 +222,20 @@ export function BudgetProvider({ children }) {
     saveDebts(updated);
   };
 
-  // Update budget configuration
+  // ⚙️ BÜTÇE VE AYARLARI GÜNCELLEME
   const updateConfig = (newConfig) => {
     triggerHaptic('light');
     setConfig(newConfig);
     saveBudgetConfig(newConfig);
   };
 
-  // Update app settings
   const updateSettings = (newSettings) => {
     triggerHaptic('light');
     setSettings(newSettings);
     saveSettings(newSettings);
   };
 
-  // Request notification permissions
+  // 🔔 BİLDİRİM İZNİ VE TESTİ
   const enableNotifications = async () => {
     const granted = await requestNotificationPermission();
     setPermissionState(getNotificationPermission());
@@ -227,7 +247,6 @@ export function BudgetProvider({ children }) {
     return granted;
   };
 
-  // Test Notification
   const sendTestNotification = () => {
     triggerNotification(
       '🧭 ParaPusula Hatırlatıcı (Test)',
@@ -235,7 +254,7 @@ export function BudgetProvider({ children }) {
     );
   };
 
-  // Month navigation
+  // ◀️ ▶️ AYLAR ARASI GEZİNME (Geçmiş ve gelecek aylara bakma)
   const prevMonth = () => {
     triggerHaptic('light');
     if (selectedMonth === 1) {
@@ -263,7 +282,7 @@ export function BudgetProvider({ children }) {
     setSelectedMonth(now.getMonth() + 1);
   };
 
-  // Backup and Restore
+  // 📦 YEDEKLEME VE GERİ YÜKLEME (JSON İle Dışa/İçe Aktar)
   const handleExport = () => {
     triggerHaptic('medium');
     exportAllData();
@@ -315,6 +334,7 @@ export function BudgetProvider({ children }) {
   );
 }
 
+// 🪝 Kolay erişim için özel React Hook'u
 export function useBudget() {
   const context = useContext(BudgetContext);
   if (!context) {
