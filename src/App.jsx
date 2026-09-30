@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BudgetProvider, useBudget } from './context/BudgetContext';
 import Header from './components/Header';
 import BottomNav from './components/BottomNav';
@@ -9,16 +9,31 @@ import DebtsSection from './components/DebtsSection';
 import QuickExpenseModal from './components/QuickExpenseModal';
 import BudgetSetupModal from './components/BudgetSetupModal';
 import SettingsModal from './components/SettingsModal';
+import OnboardingModal from './components/OnboardingModal';
 import { Plus, Compass, CreditCard, PieChart, Calendar } from 'lucide-react';
 import { triggerHaptic } from './utils/notifications';
+import { hasCompletedOnboarding, setOnboardingCompleted } from './db/storage';
 
 function Dashboard() {
   const [activeTab, setActiveTab] = useState('compass');
   const [isQuickExpenseOpen, setIsQuickExpenseOpen] = useState(false);
   const [isBudgetSetupOpen, setIsBudgetSetupOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
   const { debtStats } = useBudget();
+
+  useEffect(() => {
+    // If first time user, launch onboarding wizard automatically
+    if (!hasCompletedOnboarding()) {
+      setIsOnboardingOpen(true);
+    }
+  }, []);
+
+  const handleCompleteOnboarding = () => {
+    setOnboardingCompleted(true);
+    setIsOnboardingOpen(false);
+  };
 
   const desktopTabs = [
     { id: 'compass', label: 'Pusula', icon: Compass },
@@ -33,7 +48,7 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white pb-28 sm:pb-12">
+    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white pb-28 sm:pb-12 w-full max-w-full overflow-x-hidden">
       {/* Header */}
       <Header 
         onOpenBudgetSetup={() => setIsBudgetSetupOpen(true)}
@@ -70,7 +85,7 @@ function Dashboard() {
       </div>
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-5 sm:py-6 space-y-6">
+      <main className="flex-1 max-w-4xl w-full mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-6">
         {/* TAB 1: PUSULA (ANA SAYFA) */}
         {activeTab === 'compass' && (
           <div className="space-y-6 animate-fadeIn">
@@ -108,7 +123,7 @@ function Dashboard() {
         <div className="max-w-4xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-1.5 text-slate-400 font-medium">
             <Compass className="w-4 h-4 text-emerald-400" />
-            <span>ParaPusula v2.0</span>
+            <span>ParaPusula v2.1</span>
           </div>
           <p className="text-[11px] text-slate-500">
             Capacitor &bull; Çevrimdışı &bull; Güvenli Yerel Depolama
@@ -124,7 +139,7 @@ function Dashboard() {
               triggerHaptic('medium');
               setIsQuickExpenseOpen(true);
             }}
-            className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center shadow-2xl shadow-emerald-500/50 active:scale-95 transition"
+            className="w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 flex items-center justify-center shadow-2xl shadow-emerald-500/50 active:scale-95 transition cursor-pointer"
             title="Hızlı Harcama Gir"
           >
             <Plus className="w-7 h-7 stroke-[2.5]" />
@@ -139,6 +154,11 @@ function Dashboard() {
       />
 
       {/* Modals */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onComplete={handleCompleteOnboarding}
+      />
+
       <QuickExpenseModal 
         isOpen={isQuickExpenseOpen} 
         onClose={() => setIsQuickExpenseOpen(false)} 
@@ -152,6 +172,7 @@ function Dashboard() {
       <SettingsModal 
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)} 
+        onOpenOnboarding={() => setIsOnboardingOpen(true)}
       />
     </div>
   );

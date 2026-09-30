@@ -5,7 +5,8 @@ const STORAGE_KEYS = {
   CONFIG: 'parapusula_config',
   SPENDINGS: 'parapusula_spendings',
   SETTINGS: 'parapusula_settings',
-  DEBTS: 'parapusula_debts'
+  DEBTS: 'parapusula_debts',
+  ONBOARDED: 'parapusula_onboarded'
 };
 
 // Default initial budget configuration
@@ -44,6 +45,22 @@ export const DEFAULT_SETTINGS = {
   hapticEnabled: true,
   lastNotificationDate: null
 };
+
+// Check if onboarding completed
+export function hasCompletedOnboarding() {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.ONBOARDED) === 'true';
+  } catch (e) {
+    return false;
+  }
+}
+
+// Set onboarding completed
+export function setOnboardingCompleted(completed = true) {
+  try {
+    localStorage.setItem(STORAGE_KEYS.ONBOARDED, completed ? 'true' : 'false');
+  } catch (e) {}
+}
 
 // Read Config
 export function loadBudgetConfig() {
@@ -144,7 +161,8 @@ export function exportAllData() {
     config: loadBudgetConfig(),
     debts: loadDebts(),
     spendings: loadSpendings(),
-    settings: loadSettings()
+    settings: loadSettings(),
+    onboarded: hasCompletedOnboarding()
   };
 
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -165,6 +183,7 @@ export function importAllData(jsonString) {
     if (data.debts) saveDebts(data.debts);
     if (data.spendings) saveSpendings(data.spendings);
     if (data.settings) saveSettings(data.settings);
+    if (data.onboarded !== undefined) setOnboardingCompleted(data.onboarded);
     return { success: true };
   } catch (e) {
     console.error('Failed to import backup:', e);

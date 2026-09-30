@@ -5,16 +5,15 @@ import {
   Download, 
   Upload, 
   Smartphone, 
-  Monitor, 
   Volume2, 
   Check, 
   AlertCircle,
-  HelpCircle,
-  ShieldCheck
+  ShieldCheck,
+  Compass
 } from 'lucide-react';
 import { useBudget } from '../context/BudgetContext';
 
-export default function SettingsModal({ isOpen, onClose }) {
+export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
   const { 
     settings, 
     updateSettings, 
@@ -61,15 +60,15 @@ export default function SettingsModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-fadeIn overflow-y-auto">
       <div 
-        className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-hidden p-6 relative my-8"
+        className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-4 sm:p-6 relative my-auto max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition"
+          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -79,13 +78,36 @@ export default function SettingsModal({ isOpen, onClose }) {
           <Bell className="w-5 h-5" />
           <span className="text-xs font-bold uppercase tracking-wider">Uygulama Ayarları</span>
         </div>
-        <h2 className="text-xl font-bold text-white tracking-tight">
+        <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
           Bildirim & Veri Yönetimi
         </h2>
 
-        <div className="mt-5 space-y-5">
+        <div className="mt-4 space-y-4">
+          {/* Onboarding Wizard Reopen Button */}
+          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 flex items-center justify-between gap-3">
+            <div>
+              <span className="text-xs font-bold text-slate-200 block flex items-center gap-1.5">
+                <Compass className="w-4 h-4 text-emerald-400" />
+                <span>Başlangıç Rehberi (Start-up)</span>
+              </span>
+              <span className="text-[11px] text-slate-500">
+                İlk kurulum adımlarını baştan tamamlamak için açın.
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onOpenOnboarding();
+              }}
+              className="py-1.5 px-3 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-400 font-bold text-xs rounded-xl border border-emerald-500/30 transition flex-shrink-0 cursor-pointer"
+            >
+              Rehberi Aç
+            </button>
+          </div>
+
           {/* Notification Section */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 sm:p-4">
             <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-3 flex items-center gap-2">
               <Bell className="w-4 h-4 text-emerald-400" />
               <span>Gece Harcama Bildirimi</span>
@@ -125,7 +147,7 @@ export default function SettingsModal({ isOpen, onClose }) {
                 <button
                   type="button"
                   onClick={enableNotifications}
-                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition"
+                  className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold rounded-xl text-xs transition cursor-pointer"
                 >
                   Tarayıcı Bildirim İzni Ver
                 </button>
@@ -139,7 +161,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={sendTestNotification}
-                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1.5"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-medium transition flex items-center gap-1.5 cursor-pointer"
               >
                 <Volume2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Test Et</span>
@@ -148,10 +170,10 @@ export default function SettingsModal({ isOpen, onClose }) {
           </div>
 
           {/* Backup & Restore (Zero-server sync) */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-4">
+          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 sm:p-4">
             <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2 flex items-center gap-2">
               <Download className="w-4 h-4 text-blue-400" />
-              <span>Veri Yedekleme & Cihazlar Arası Aktarım</span>
+              <span>Veri Yedekleme & Aktarım</span>
             </h4>
             <p className="text-[11px] text-slate-400 mb-3">
               Sunucuya ihtiyaç duymadan verilerinizi telefonunuza veya bilgisayarınıza aktarmak için JSON yedeği alabilirsiniz.
@@ -161,7 +183,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={handleExport}
-                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-blue-400" />
                 <span>Yedek İndir (JSON)</span>
@@ -170,7 +192,7 @@ export default function SettingsModal({ isOpen, onClose }) {
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition"
+                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Yedek Yükle</span>
@@ -198,13 +220,13 @@ export default function SettingsModal({ isOpen, onClose }) {
           </div>
 
           {/* Platform Guide */}
-          <div className="bg-slate-950/40 border border-slate-800/80 rounded-2xl p-4 text-xs space-y-2">
+          <div className="bg-slate-950/40 border border-slate-800/80 rounded-2xl p-3 sm:p-4 text-xs space-y-1.5">
             <h4 className="font-bold text-slate-300 flex items-center gap-1.5">
               <Smartphone className="w-4 h-4 text-emerald-400" />
               <span>Mobilde (Telefonda) Nasıl Kullanılır?</span>
             </h4>
             <p className="text-slate-400 text-[11px] leading-relaxed">
-              Telefonunuzun tarayıcısından (Chrome/Safari) uygulamayı açıp <strong>"Ana Ekrana Ekle" (Uygulama Olarak Yükle)</strong> butonuna bastığınızda, cihazınıza bağımsız bir mobil uygulama gibi kurulur ve çevrimdışı çalışır.
+              Telefonunuzun tarayıcısından linki açıp <strong>"Ana Ekrana Ekle" (Uygulama Olarak Yükle)</strong> butonuna bastığınızda, cihazınıza bağımsız bir mobil uygulama gibi kurulur ve çevrimdışı çalışır.
             </p>
           </div>
         </div>
@@ -212,9 +234,9 @@ export default function SettingsModal({ isOpen, onClose }) {
         {/* Save Changes Button */}
         <button
           onClick={handleSaveSettings}
-          className="w-full mt-6 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer"
+          className="w-full mt-5 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer"
         >
-          <Check className="w-5 h-5" />
+          <Check className="w-5 h-5 stroke-[2.5]" />
           <span>Ayarları Kaydet</span>
         </button>
       </div>
