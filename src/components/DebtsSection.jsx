@@ -107,27 +107,27 @@ export default function DebtsSection() {
         </div>
 
         {/* 3 Metric Cards */}
-        <div className="grid grid-cols-3 gap-2.5 sm:gap-4 pt-2">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 pt-2">
           {/* Toplam Kalan Borç */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-3.5">
-            <span className="text-[11px] text-slate-400 block font-medium">Toplam Kalan Borç</span>
-            <span className="text-sm sm:text-lg font-extrabold text-white mt-1 block">
+          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-2.5 sm:p-3.5 min-w-0 text-center sm:text-left">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block font-medium truncate">Toplam Borç</span>
+            <span className="text-xs sm:text-lg font-extrabold text-white mt-1 block whitespace-nowrap">
               {formatCurrency(debtStats.totalDebt)}
             </span>
           </div>
 
           {/* Bu Ay Ödenecek */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-3.5">
-            <span className="text-[11px] text-slate-400 block font-medium">Bu Ayki Taksitler</span>
-            <span className="text-sm sm:text-lg font-extrabold text-amber-400 mt-1 block">
+          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-2.5 sm:p-3.5 min-w-0 text-center sm:text-left">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block font-medium truncate">Bu Ayki Taksit</span>
+            <span className="text-xs sm:text-lg font-extrabold text-amber-400 mt-1 block whitespace-nowrap">
               {formatCurrency(debtStats.monthlyCommitment)}
             </span>
           </div>
 
           {/* Bu Ay Kalan Ödeme */}
-          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-3.5">
-            <span className="text-[11px] text-slate-400 block font-medium">Kalan Ödeme</span>
-            <span className={`text-sm sm:text-lg font-extrabold mt-1 block ${
+          <div className="bg-slate-950/60 border border-slate-800 rounded-2xl p-2.5 sm:p-3.5 min-w-0 text-center sm:text-left">
+            <span className="text-[10px] sm:text-[11px] text-slate-400 block font-medium truncate">Kalan Ödeme</span>
+            <span className={`text-xs sm:text-lg font-extrabold mt-1 block whitespace-nowrap ${
               debtStats.pendingThisMonth === 0 ? 'text-emerald-400' : 'text-rose-400'
             }`}>
               {debtStats.pendingThisMonth === 0 ? 'Ödendi ✓' : formatCurrency(debtStats.pendingThisMonth)}

@@ -70,178 +70,177 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-fadeIn overflow-y-auto">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-slate-950/90 overflow-hidden overscroll-none"
+      onClick={onClose}
+    >
       <div 
-        className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl p-4 sm:p-6 relative my-auto max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-[92dvh]"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Close Button */}
-        <button
-          onClick={onClose}
-          className="absolute top-4 right-4 p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition cursor-pointer"
-        >
-          <X className="w-5 h-5" />
-        </button>
-
-        {/* Header */}
-        <div className="flex items-center gap-2 text-emerald-400 mb-1">
-          <Sliders className="w-5 h-5" />
-          <span className="text-xs font-bold uppercase tracking-wider">Bütçe Yapılandırması</span>
-        </div>
-        <h2 className="text-lg sm:text-xl font-bold text-white tracking-tight">
-          Aylık Bütçe Planını Ayarla
-        </h2>
-        <p className="text-xs text-slate-400 mt-0.5">
-          Hazır şablonlardan birini seçebilir veya gelir, gider ve birikiminizi kendiniz girebilirsiniz.
-        </p>
-
-        {/* ⚡ 4 ADET HAZIR BÜTÇE ŞABLONU (TEMPLATES) */}
-        <div className="mt-3.5">
-          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
-            <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-            Hazır Bütçe Şablonları (Tek Tıkla Doldur)
-          </span>
-          <div className="grid grid-cols-2 gap-2">
-            {BUDGET_TEMPLATES.map((tpl) => (
-              <button
-                key={tpl.id}
-                type="button"
-                onClick={() => handleApplyTemplate(tpl)}
-                className="text-left p-2.5 rounded-xl bg-slate-950/80 hover:bg-emerald-500/15 border border-slate-800 hover:border-emerald-500/40 transition cursor-pointer group"
-              >
-                <span className="text-xs font-bold text-slate-200 group-hover:text-emerald-300 block truncate">
-                  {tpl.name}
-                </span>
-                <span className="text-[10px] text-slate-500 block truncate mt-0.5">
-                  {tpl.description}
-                </span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Live Calculation Preview Banner */}
-        <div className="mt-4 p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-900 to-slate-900 border border-emerald-500/30">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <span className="text-[11px] text-emerald-400 block font-medium">Kullanılabilir Serbest Bütçe</span>
-              <span className="text-base sm:text-lg font-extrabold text-white mt-0.5 block">
-                {formatCurrency(freeBudget)}
-              </span>
-            </div>
-            <div>
-              <span className="text-[11px] text-emerald-400 block font-medium">Günlük Taban Harçlık</span>
-              <span className="text-base sm:text-lg font-extrabold text-emerald-400 mt-0.5 block">
-                {formatCurrency(dailyBase)} <span className="text-xs text-slate-400 font-normal">/ gün</span>
-              </span>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 space-y-4">
-          {/* Income Input */}
+        {/* SABİT ÜST BAŞLIK */}
+        <div className="flex-shrink-0 flex items-center justify-between px-4 py-3.5 bg-slate-900 border-b border-slate-800">
           <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-1.5 flex items-center gap-1.5">
-              <DollarSign className="w-4 h-4 text-emerald-400" />
-              <span>Toplam Aylık Gelir</span>
-            </label>
-            <div className="relative flex items-center">
-              <span className="absolute left-3.5 text-sm font-bold text-emerald-400">₺</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={income}
-                onChange={(e) => setIncome(e.target.value)}
-                placeholder="Örn: 35000"
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-bold text-sm focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 outline-none transition"
-              />
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <Sliders className="w-4 h-4" />
+              <span className="text-[11px] font-bold uppercase tracking-wider">Bütçe Yapılandırması</span>
+            </div>
+            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight mt-0.5">
+              Aylık Bütçe Planını Ayarla
+            </h2>
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-2 rounded-xl text-slate-400 hover:text-white bg-slate-800/80 hover:bg-slate-800 transition cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* KAYDIRILABİLİR ORTA GÖVDE */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain p-3.5 sm:p-5 space-y-3.5">
+          {/* Canlı Hesaplama Özeti */}
+          <div className="p-3 rounded-2xl bg-gradient-to-r from-emerald-950/40 via-slate-950 to-slate-950 border border-emerald-500/30">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-[11px] text-emerald-400 block font-medium">Serbest Bütçe</span>
+                <span className="text-base sm:text-lg font-extrabold text-white mt-0.5 block whitespace-nowrap">
+                  {formatCurrency(freeBudget)}
+                </span>
+              </div>
+              <div>
+                <span className="text-[11px] text-emerald-400 block font-medium">Günlük Taban Hak</span>
+                <span className="text-base sm:text-lg font-extrabold text-emerald-400 mt-0.5 block whitespace-nowrap">
+                  {formatCurrency(dailyBase)} <span className="text-[11px] text-slate-400 font-normal">/ gün</span>
+                </span>
+              </div>
             </div>
           </div>
 
-          {/* Target Savings Input */}
+          {/* ⚡ 4 ADET HAZIR BÜTÇE ŞABLONU */}
           <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <PiggyBank className="w-4 h-4 text-blue-400" />
-                <span>Aylık Hedef Birikim (Dokunulmayacak)</span>
+            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-1.5">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+              Hazır Bütçe Şablonları (Tek Tıkla Doldur)
+            </span>
+            <div className="grid grid-cols-2 gap-1.5">
+              {BUDGET_TEMPLATES.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => handleApplyTemplate(tpl)}
+                  className="text-left p-2 rounded-xl bg-slate-950 hover:bg-emerald-500/15 border border-slate-800 hover:border-emerald-500/40 transition cursor-pointer group"
+                >
+                  <span className="text-xs font-bold text-slate-200 group-hover:text-emerald-300 block truncate">
+                    {tpl.name}
+                  </span>
+                  <span className="text-[10px] text-slate-500 block truncate mt-0.5">
+                    {tpl.description}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Gelir & Birikim Yan Yana Kompakt Giriş */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-slate-300 mb-1 flex items-center gap-1.5">
+                <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Toplam Aylık Gelir</span>
               </label>
-              {savingsRate > 0 && (
-                <span className="text-[10px] sm:text-[11px] font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-                  Gelirin %{savingsRate}'si
-                </span>
-              )}
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-sm font-bold text-emerald-400">₺</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={income}
+                  onChange={(e) => setIncome(e.target.value)}
+                  placeholder="Örn: 35000"
+                  className="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-bold text-sm focus:border-emerald-500 outline-none"
+                />
+              </div>
             </div>
-            <div className="relative flex items-center">
-              <span className="absolute left-3.5 text-sm font-bold text-blue-400">₺</span>
-              <input
-                type="text"
-                inputMode="numeric"
-                value={targetSavings}
-                onChange={(e) => setTargetSavings(e.target.value)}
-                placeholder="Örn: 9000"
-                className="w-full pl-9 pr-4 py-2.5 bg-slate-950 border border-slate-700 rounded-xl text-white font-bold text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 outline-none transition"
-              />
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
+                  <PiggyBank className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Hedef Birikim</span>
+                </label>
+                {savingsRate > 0 && (
+                  <span className="text-[10px] font-bold text-blue-400 bg-blue-500/10 px-1.5 py-0.2 rounded-full">
+                    %{savingsRate}
+                  </span>
+                )}
+              </div>
+              <div className="relative flex items-center">
+                <span className="absolute left-3 text-sm font-bold text-blue-400">₺</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={targetSavings}
+                  onChange={(e) => setTargetSavings(e.target.value)}
+                  placeholder="Örn: 9000"
+                  className="w-full pl-8 pr-3 py-2 bg-slate-950 border border-slate-700 rounded-xl text-white font-bold text-sm focus:border-blue-500 outline-none"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Fixed Expenses Section */}
+          {/* Sabit Giderler */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
               <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
-                <Receipt className="w-4 h-4 text-amber-400" />
-                <span>Zorunlu Sabit Giderler (Kira, Fatura vb.)</span>
+                <Receipt className="w-3.5 h-3.5 text-amber-400" />
+                <span>Zorunlu Sabit Giderler</span>
               </label>
               <span className="text-xs font-extrabold text-amber-400">
                 Toplam: {formatCurrency(totalFixed)}
               </span>
             </div>
 
-            {/* List of current fixed expenses */}
-            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
-              {fixedExpenses.map((item) => (
-                <div 
-                  key={item.id}
-                  className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs"
-                >
-                  <span className="text-slate-200 font-semibold">{item.title}</span>
-                  <div className="flex items-center gap-2">
-                    <span className="font-extrabold text-amber-400">{formatCurrency(item.amount)}</span>
-                    <button
-                      onClick={() => handleRemoveFixedItem(item.id)}
-                      className="text-slate-500 hover:text-rose-400 transition p-1 cursor-pointer"
-                      title="Sil"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+            {fixedExpenses.length > 0 && (
+              <div className="space-y-1.5 max-h-28 overflow-y-auto pr-1 mb-2">
+                {fixedExpenses.map((item) => (
+                  <div 
+                    key={item.id}
+                    className="flex items-center justify-between bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs"
+                  >
+                    <span className="text-slate-200 font-semibold truncate">{item.title}</span>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span className="font-extrabold text-amber-400 whitespace-nowrap">{formatCurrency(item.amount)}</span>
+                      <button
+                        onClick={() => handleRemoveFixedItem(item.id)}
+                        className="text-slate-500 hover:text-rose-400 transition p-0.5 cursor-pointer"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
-            {/* Add new fixed expense form - Spacious 2-row layout */}
-            <div className="mt-3 p-3 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-2">
-              <span className="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">
-                + Yeni Sabit Gider Ekle
-              </span>
+            <div className="p-2.5 bg-slate-950 border border-slate-800 rounded-2xl space-y-2">
               <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    placeholder="Kalem (Örn: Aidat)"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-semibold text-white outline-none focus:border-amber-400 transition"
-                  />
-                </div>
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(e) => setNewTitle(e.target.value)}
+                  placeholder="Kalem (Örn: Kira)"
+                  className="w-full px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-semibold text-white outline-none"
+                />
                 <div className="relative">
-                  <span className="absolute left-2.5 top-2 text-xs font-bold text-amber-400">₺</span>
+                  <span className="absolute left-2.5 top-1.5 text-xs font-bold text-amber-400">₺</span>
                   <input
                     type="text"
                     inputMode="numeric"
                     value={newAmount}
                     onChange={(e) => setNewAmount(e.target.value)}
-                    placeholder="Tutar (Örn: 1500)"
-                    className="w-full pl-7 pr-2 py-2 bg-slate-900 border border-slate-700 rounded-xl text-xs font-extrabold text-white outline-none focus:border-amber-400 transition"
+                    placeholder="Tutar (1500)"
+                    className="w-full pl-6 pr-2 py-1.5 bg-slate-900 border border-slate-700 rounded-xl text-xs font-extrabold text-white outline-none"
                   />
                 </div>
               </div>
@@ -249,27 +248,29 @@ export default function BudgetSetupModal({ isOpen, onClose }) {
                 type="button"
                 onClick={handleAddFixedItem}
                 disabled={!newTitle.trim() || !newAmount}
-                className={`w-full py-2 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer ${
+                className={`w-full py-1.5 rounded-xl text-xs font-bold flex items-center justify-center gap-1 transition cursor-pointer ${
                   newTitle.trim() && newAmount
-                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30'
+                    ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
                     : 'bg-slate-900 text-slate-600 border border-slate-800 cursor-not-allowed'
                 }`}
               >
                 <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
-                <span>Bu Kalemi Ekle</span>
+                <span>Sabit Gider Ekle</span>
               </button>
             </div>
           </div>
         </div>
 
-        {/* Save Button */}
-        <button
-          onClick={handleSaveAll}
-          className="w-full mt-5 py-3.5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer"
-        >
-          <Check className="w-5 h-5 stroke-[2.5]" />
-          <span>Bütçe Planını Kaydet</span>
-        </button>
+        {/* SABİT ALT KAYDET BUTONU */}
+        <div className="flex-shrink-0 p-3.5 bg-slate-900 border-t border-slate-800">
+          <button
+            onClick={handleSaveAll}
+            className="w-full py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-lg shadow-emerald-500/20 active:scale-[0.98] cursor-pointer"
+          >
+            <Check className="w-5 h-5 stroke-[2.5]" />
+            <span>Bütçe Planını Kaydet</span>
+          </button>
+        </div>
       </div>
     </div>
   );

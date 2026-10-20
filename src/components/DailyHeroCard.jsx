@@ -159,30 +159,28 @@ export default function DailyHeroCard({ onOpenQuickExpense }) {
       {/* ================================================================================== */}
       {/* 2. ALT TARAF: GÜNLÜK TABAN HAK, DEVREDEN (+ / -) VE BUGÜN HARCANANLAR SEKMELERİ   */}
       {/* ================================================================================== */}
-      <div className="grid grid-cols-3 gap-2.5 sm:gap-4 mt-5 pt-5 border-t border-slate-800/80">
+      <div className="grid grid-cols-3 gap-2 sm:gap-4 mt-5 pt-4 border-t border-slate-800/80">
         
         {/* 1. Günlük Taban Hak */}
-        <div className="bg-slate-950/60 rounded-2xl p-3 sm:p-4 border border-slate-800/70 text-center sm:text-left">
-          <span className="text-[11px] text-slate-400 block font-medium">Günlük Taban Hak</span>
-          <span className="text-sm sm:text-base font-extrabold text-slate-100 mt-1 block">
+        <div className="bg-slate-950/60 rounded-2xl p-2.5 sm:p-4 border border-slate-800/70 text-center sm:text-left min-w-0">
+          <span className="text-[10px] sm:text-[11px] text-slate-400 block font-medium truncate">Günlük Taban Hak</span>
+          <span className="text-xs sm:text-base font-extrabold text-slate-100 mt-1 block whitespace-nowrap">
             +{formatCurrency(base)}
           </span>
         </div>
 
         {/* 2. Önceki Günden Devreden (+ / -) */}
-        <div className="bg-slate-950/60 rounded-2xl p-3 sm:p-4 border border-slate-800/70 text-center sm:text-left">
-          <div className="flex items-center justify-center sm:justify-start gap-1">
-            <span className="text-[11px] text-slate-400 font-medium">Devreden Bakiye</span>
-          </div>
-          <span className={`text-sm sm:text-base font-extrabold mt-1 block ${roundedRollover >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+        <div className="bg-slate-950/60 rounded-2xl p-2.5 sm:p-4 border border-slate-800/70 text-center sm:text-left min-w-0">
+          <span className="text-[10px] sm:text-[11px] text-slate-400 block font-medium truncate">Devreden Bakiye</span>
+          <span className={`text-xs sm:text-base font-extrabold mt-1 block whitespace-nowrap ${roundedRollover >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
             {formatSignedCurrency(rolloverFromYesterday)}
           </span>
         </div>
 
         {/* 3. Bugün Harcananlar */}
-        <div className="bg-slate-950/60 rounded-2xl p-3 sm:p-4 border border-slate-800/70 text-center sm:text-left">
-          <span className="text-[11px] text-slate-400 block font-medium">Bugün Harcananlar</span>
-          <span className={`text-sm sm:text-base font-extrabold mt-1 block ${spent > 0 ? 'text-amber-400' : 'text-slate-200'}`}>
+        <div className="bg-slate-950/60 rounded-2xl p-2.5 sm:p-4 border border-slate-800/70 text-center sm:text-left min-w-0">
+          <span className="text-[10px] sm:text-[11px] text-slate-400 block font-medium truncate">Bugün Harcanan</span>
+          <span className={`text-xs sm:text-base font-extrabold mt-1 block whitespace-nowrap ${spent > 0 ? 'text-amber-400' : 'text-slate-200'}`}>
             {spent > 0 ? `-${formatCurrency(spent)}` : formatCurrency(0)}
           </span>
         </div>
