@@ -15,7 +15,7 @@ import {
   X
 } from 'lucide-react';
 import { useBudget } from '../context/BudgetContext';
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency, parseCleanNumber } from '../utils/calculations';
 
 export default function DebtsSection() {
   const { 
@@ -39,7 +39,7 @@ export default function DebtsSection() {
   // Auto-calculate monthly payment suggestion when total or months change
   const handleTotalChange = (val) => {
     setTotalAmount(val);
-    const tot = parseFloat(val) || 0;
+    const tot = parseCleanNumber(val);
     const months = parseInt(remainingMonths, 10) || 1;
     if (tot > 0 && months > 0) {
       setMonthlyPayment(String(Math.round(tot / months)));
@@ -48,7 +48,7 @@ export default function DebtsSection() {
 
   const handleMonthsChange = (val) => {
     setRemainingMonths(val);
-    const tot = parseFloat(totalAmount) || 0;
+    const tot = parseCleanNumber(totalAmount);
     const months = parseInt(val, 10) || 1;
     if (tot > 0 && months > 0) {
       setMonthlyPayment(String(Math.round(tot / months)));
@@ -59,10 +59,13 @@ export default function DebtsSection() {
     e?.preventDefault();
     if (!title.trim() || !totalAmount) return;
 
+    const cleanTotal = parseCleanNumber(totalAmount);
+    const cleanMonthly = parseCleanNumber(monthlyPayment) || Math.round(cleanTotal / (parseInt(remainingMonths, 10) || 1));
+
     addDebt({
       title,
-      totalAmount,
-      monthlyPayment: monthlyPayment || (parseFloat(totalAmount) / (parseInt(remainingMonths, 10) || 1)),
+      totalAmount: cleanTotal,
+      monthlyPayment: cleanMonthly,
       remainingMonths,
       dueDay,
       note
@@ -306,7 +309,8 @@ export default function DebtsSection() {
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">₺</span>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       required
                       placeholder="12000"
                       value={totalAmount}
@@ -340,7 +344,8 @@ export default function DebtsSection() {
                   <div className="relative">
                     <span className="absolute left-3 top-2.5 text-xs font-bold text-slate-400">₺</span>
                     <input
-                      type="number"
+                      type="text"
+                      inputMode="numeric"
                       placeholder="2000"
                       value={monthlyPayment}
                       onChange={(e) => setMonthlyPayment(e.target.value)}

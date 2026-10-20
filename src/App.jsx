@@ -106,7 +106,10 @@ function Dashboard() {
         {/* TAB 3: AYLIK BÜTÇE & RAPOR */}
         {activeTab === 'budget' && (
           <div className="space-y-6 animate-fadeIn">
-            <MonthOverview />
+            <MonthOverview 
+              showDetails={true} 
+              onOpenBudgetSetup={() => setIsBudgetSetupOpen(true)} 
+            />
           </div>
         )}
 

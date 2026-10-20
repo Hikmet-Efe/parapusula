@@ -102,6 +102,22 @@ export function getDaySpendingTotal(spendingsMap, dateKey) {
 }
 
 /**
+ * 🧾 BELİRLİ BİR GÜNÜN HARCAMA KAYIT LİSTESİNİ GETİRME
+ * --------------------------------------------------------------------------------------
+ * O gün içinde yaptığım harcamaları tek tek saatleriyle listelemek ve yanlışlıkla
+ * girdiğim bir harcamayı tek tıkla silebilmek için kayıt dizisini döndürüyorum.
+ */
+export function getDaySpendingEntries(spendingsMap, dateKey) {
+  const dayEntries = spendingsMap[dateKey];
+  if (!dayEntries) return [];
+  if (Array.isArray(dayEntries)) {
+    return dayEntries.filter(item => (parseCleanNumber(item.amount) || 0) > 0);
+  }
+  const num = parseCleanNumber(dayEntries) || 0;
+  return num > 0 ? [{ id: '1', amount: num, time: '12:00' }] : [];
+}
+
+/**
  * 🧭 ANA BÜTÇE VE DİNAMİK DEVİR MOTORUM (EN KRİTİK ALAN)
  * ======================================================================================
  * BURADA NASIL BİR MANTIK KURDUM?
@@ -159,6 +175,7 @@ export function calculateMonthBudget(config, spendingsMap, year, month) {
   for (let d = 1; d <= totalDays; d++) {
     const dateKey = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
     const daySpent = getDaySpendingTotal(spendingsMap, dateKey);
+    const dayEntries = getDaySpendingEntries(spendingsMap, dateKey);
     const isBeforeStart = d < effectiveStartDay;
 
     let startingBalance = 0;
@@ -192,6 +209,7 @@ export function calculateMonthBudget(config, spendingsMap, year, month) {
       baseAllowance: isBeforeStart ? 0 : baseDailyAllowance,
       startingBalance,
       spent: daySpent,
+      entries: dayEntries,
       remainingBalance,
       dailyDiff,
       isBeforeStart,
@@ -207,9 +225,25 @@ export function calculateMonthBudget(config, spendingsMap, year, month) {
 
   // 8. Ayın genel gidişat istatistikleri
   const activeDaysSoFar = Math.max(1, currentDayNumber - effectiveStartDay + 1);
-  const spentSoFar = days.slice(effectiveStartDay - 1, currentDayNumber).reduce((sum, d) => sum + d.spent, 0);
+  const activeSliceSoFar = days.slice(effectiveStartDay - 1, currentDayNumber);
+  const spentSoFar = activeSliceSoFar.reduce((sum, d) => sum + d.spent, 0);
   const allowanceSoFar = activeDaysSoFar * baseDailyAllowance;
   const netSurplusSoFar = allowanceSoFar - spentSoFar;
+
+  // 🔥 Tasarruf Serisi (Streak): Üst üste kaç gündür eksiye düşmeden bütçemi koruyorum?
+  let streakDays = 0;
+  for (let i = activeSliceSoFar.length - 1; i >= 0; i--) {
+    if (activeSliceSoFar[i].remainingBalance >= 0) {
+      streakDays++;
+    } else {
+      break;
+    }
+  }
+
+  // 🌟 Sıfır Harcama Günleri ve Ay Sonu Tahmini Kumbara
+  const noSpendDaysCount = activeSliceSoFar.filter(d => d.spent === 0).length;
+  const projectedExtraSavings = Math.max(0, netSurplusSoFar);
+  const projectedTotalSavings = targetSavings + projectedExtraSavings;
 
   // Ay sonuna kadar kalan günlerim ve kalan toplam bütçem
   const remainingDays = Math.max(0, totalDays - currentDayNumber);
@@ -241,6 +275,10 @@ export function calculateMonthBudget(config, spendingsMap, year, month) {
     spentSoFar,
     allowanceSoFar,
     netSurplusSoFar,
+    streakDays,
+    noSpendDaysCount,
+    projectedExtraSavings,
+    projectedTotalSavings,
     remainingDays,
     remainingMonthBudget,
     dynamicRemainingDaily,

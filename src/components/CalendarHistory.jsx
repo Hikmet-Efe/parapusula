@@ -99,7 +99,8 @@ export default function CalendarHistory() {
                         <div className="relative w-24">
                           <span className="absolute left-2 top-1.5 text-xs text-slate-400">₺</span>
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             autoFocus
                             value={editAmount}
                             onChange={(e) => setEditAmount(e.target.value)}
@@ -147,7 +148,9 @@ export default function CalendarHistory() {
 
                   {/* Status / Devir Impact */}
                   <td className="py-3 px-3 text-right">
-                    {day.spent > 0 || isPast || isToday ? (
+                    {day.isBeforeStart ? (
+                      <span className="text-[11px] text-slate-600 italic">Başlangıç Öncesi</span>
+                    ) : day.spent > 0 || isPast || isToday ? (
                       day.dailyDiff >= 0 ? (
                         <span className="inline-flex items-center gap-0.5 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                           <ArrowUpRight className="w-3 h-3" />

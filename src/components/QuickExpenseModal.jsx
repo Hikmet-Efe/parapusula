@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Check, Zap, Sparkles } from 'lucide-react';
 import { useBudget } from '../context/BudgetContext';
-import { formatCurrency } from '../utils/calculations';
+import { formatCurrency, parseCleanNumber } from '../utils/calculations';
 
 export default function QuickExpenseModal({ isOpen, onClose }) {
   const { addExpense, budget } = useBudget();
@@ -20,7 +20,7 @@ export default function QuickExpenseModal({ isOpen, onClose }) {
   if (!isOpen) return null;
 
   const currentRemaining = budget.todayData.remainingBalance;
-  const numAmount = parseFloat(amount) || 0;
+  const numAmount = parseCleanNumber(amount);
   const projectedRemaining = currentRemaining - numAmount;
 
   const handleSubmit = (e) => {
@@ -32,7 +32,7 @@ export default function QuickExpenseModal({ isOpen, onClose }) {
   };
 
   const handleQuickAdd = (addVal) => {
-    const cur = parseFloat(amount) || 0;
+    const cur = parseCleanNumber(amount);
     setAmount(String(cur + addVal));
     inputRef.current?.focus();
   };
@@ -69,9 +69,8 @@ export default function QuickExpenseModal({ isOpen, onClose }) {
             <span className="absolute left-4 text-2xl font-bold text-slate-400">₺</span>
             <input
               ref={inputRef}
-              type="number"
-              step="any"
-              min="0"
+              type="text"
+              inputMode="numeric"
               placeholder="0"
               value={amount}
               onChange={(e) => setAmount(e.target.value)}

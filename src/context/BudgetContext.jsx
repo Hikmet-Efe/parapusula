@@ -22,7 +22,8 @@ import {
 } from '../db/storage';
 import {
   calculateMonthBudget,
-  formatDateKey
+  formatDateKey,
+  parseCleanNumber
 } from '../utils/calculations';
 import {
   startNotificationScheduler,
@@ -138,7 +139,7 @@ export function BudgetProvider({ children }) {
   // ➕ YENİ HARCAMA GİRME FONKSİYONUM (Titreşimli)
   // Ekranda harcama girdiğim an hem telefona titreşim veriyorum hem de harcamayı günün tarihine işliyorum.
   const addExpense = (amount, note = '') => {
-    const num = Math.abs(parseFloat(amount) || 0);
+    const num = Math.abs(parseCleanNumber(amount));
     if (num <= 0) return;
 
     // Dokunma hissi (Haptic) veriyorum
@@ -147,13 +148,13 @@ export function BudgetProvider({ children }) {
     const dateKey = formatDateKey(new Date());
     const existing = spendings[dateKey] || [];
     
-    let entries = Array.isArray(existing) ? [...existing] : [{ id: '1', amount: Number(existing), time: '12:00', note: '' }];
+    let entries = Array.isArray(existing) ? [...existing] : [{ id: '1', amount: parseCleanNumber(existing), time: '12:00', note: '' }];
     
     const now = new Date();
     const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
     entries.push({
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       amount: num,
       time: timeStr,
       note: note.trim()
@@ -164,13 +165,29 @@ export function BudgetProvider({ children }) {
     saveSpendings(newSpendings);
   };
 
+  // 🗑️ TEKİL HARCAMA SİLME / GERİ ALMA FONKSİYONUM
+  // Yanlışlıkla bir çipe bastığımda veya hatalı harcama girdiğimde tek dokunuşla sadece o işlemi siliyorum.
+  const removeExpenseEntry = (dateKey, entryId) => {
+    triggerHaptic('medium');
+    const existing = spendings[dateKey];
+    if (!existing) return;
+
+    let entries = Array.isArray(existing)
+      ? existing.filter(item => item.id !== entryId)
+      : [];
+
+    const newSpendings = { ...spendings, [dateKey]: entries };
+    setSpendings(newSpendings);
+    saveSpendings(newSpendings);
+  };
+
   // ✏️ GEÇMİŞ BİR GÜNÜN HARCAMASINI DÜZELTME
   const setDaySpending = (dateKey, totalAmount) => {
     triggerHaptic('light');
-    const num = Math.max(0, parseFloat(totalAmount) || 0);
+    const num = Math.max(0, parseCleanNumber(totalAmount));
     const newSpendings = {
       ...spendings,
-      [dateKey]: [{ id: Date.now().toString(), amount: num, time: '23:00', note: 'Güncelleme' }]
+      [dateKey]: num > 0 ? [{ id: Date.now().toString(), amount: num, time: '23:00', note: 'Güncelleme' }] : []
     };
     setSpendings(newSpendings);
     saveSpendings(newSpendings);
@@ -182,8 +199,8 @@ export function BudgetProvider({ children }) {
     const newDebt = {
       id: Date.now().toString(),
       title: debtItem.title.trim(),
-      totalAmount: parseFloat(debtItem.totalAmount) || 0,
-      monthlyPayment: parseFloat(debtItem.monthlyPayment) || 0,
+      totalAmount: parseCleanNumber(debtItem.totalAmount),
+      monthlyPayment: parseCleanNumber(debtItem.monthlyPayment),
       remainingMonths: parseInt(debtItem.remainingMonths, 10) || 1,
       totalMonths: parseInt(debtItem.remainingMonths, 10) || 1,
       dueDay: parseInt(debtItem.dueDay, 10) || 15,
@@ -306,6 +323,7 @@ export function BudgetProvider({ children }) {
         updateConfig,
         spendings,
         addExpense,
+        removeExpenseEntry,
         setDaySpending,
         debts,
         debtStats,
