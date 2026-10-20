@@ -18,7 +18,7 @@ import confetti from 'canvas-confetti';
 import { useBudget } from '../context/BudgetContext';
 import { formatCurrency, calculateTotalFixed, parseCleanNumber, getDaysInMonth } from '../utils/calculations';
 import { triggerHaptic } from '../utils/notifications';
-import { hasCompletedOnboarding } from '../db/storage';
+import { hasCompletedOnboarding, BUDGET_TEMPLATES } from '../db/storage';
 
 export default function OnboardingModal({ isOpen, onComplete }) {
   const { config, updateConfig, settings, updateSettings, enableNotifications, budget } = useBudget();
@@ -27,10 +27,17 @@ export default function OnboardingModal({ isOpen, onComplete }) {
   const [income, setIncome] = useState(hasCompletedOnboarding() ? (config.monthlyIncome || '') : '');
   const [targetSavings, setTargetSavings] = useState(hasCompletedOnboarding() ? (config.targetSavings || '') : '');
   const [notificationTime, setNotificationTime] = useState(settings.notificationTime || '23:00');
-  const [fixedExpenses, setFixedExpenses] = useState(config.fixedExpenses || [
-    { id: '1', title: 'Ev Kirası / Aidat', amount: 15000 },
-    { id: '2', title: 'Faturalar & Abonelikler', amount: 3000 }
-  ]);
+  const [fixedExpenses, setFixedExpenses] = useState(config.fixedExpenses || []);
+
+  const handleSelectTemplate = (tpl) => {
+    triggerHaptic('medium');
+    setIncome(String(tpl.monthlyIncome));
+    setTargetSavings(String(tpl.targetSavings));
+    setFixedExpenses(tpl.fixedExpenses.map((item, idx) => ({
+      ...item,
+      id: `${Date.now()}-${idx}`
+    })));
+  };
 
   const [newTitle, setNewTitle] = useState('');
   const [newAmount, setNewAmount] = useState('');
@@ -165,6 +172,27 @@ export default function OnboardingModal({ isOpen, onComplete }) {
               <p className="text-[11px] text-slate-400 mt-2">
                 📅 Bugün ayın <strong>{currentDay}. günü</strong>. Bütçeniz ay başından değil, bugünden ay sonuna kadar olan <strong>{activeDaysCount} gün</strong> üzerinden başlatılacak.
               </p>
+            </div>
+
+            {/* Hazır Bütçe Şablonları */}
+            <div>
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                Veya Hazır Bir Şablon Seçin
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                {BUDGET_TEMPLATES.map((tpl) => (
+                  <button
+                    key={tpl.id}
+                    type="button"
+                    onClick={() => handleSelectTemplate(tpl)}
+                    className="text-left p-2.5 rounded-xl bg-slate-950 border border-slate-800 hover:border-emerald-500/40 transition cursor-pointer"
+                  >
+                    <span className="text-xs font-bold text-slate-200 block truncate">{tpl.name}</span>
+                    <span className="text-[10px] text-slate-500 block truncate mt-0.5">{tpl.description}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <button

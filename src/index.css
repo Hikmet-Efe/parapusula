@@ -65,3 +65,36 @@ input::placeholder {
 .glow-rose {
   box-shadow: 0 0 35px -5px rgba(244, 63, 94, 0.25);
 }
+
+/* ========================================================================== */
+/* 🎨 UYGULAMA GÖRSEL TEMA ŞABLONLARIM (Okyanus, Altın, Siber Mor)            */
+/* ========================================================================== */
+[data-theme="ocean"] {
+  filter: hue-rotate(42deg);
+}
+[data-theme="ocean"] .text-rose-400,
+[data-theme="ocean"] .text-rose-300,
+[data-theme="ocean"] .bg-rose-500,
+[data-theme="ocean"] .glow-rose {
+  filter: hue-rotate(-42deg);
+}
+
+[data-theme="purple"] {
+  filter: hue-rotate(115deg);
+}
+[data-theme="purple"] .text-rose-400,
+[data-theme="purple"] .text-rose-300,
+[data-theme="purple"] .bg-rose-500,
+[data-theme="purple"] .glow-rose {
+  filter: hue-rotate(-115deg);
+}
+
+[data-theme="gold"] {
+  filter: hue-rotate(-110deg) saturate(1.15);
+}
+[data-theme="gold"] .text-rose-400,
+[data-theme="gold"] .text-rose-300,
+[data-theme="gold"] .bg-rose-500,
+[data-theme="gold"] .glow-rose {
+  filter: hue-rotate(110deg);
+}

@@ -21,7 +21,7 @@ function Dashboard() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
-  const { debtStats } = useBudget();
+  const { debtStats, settings } = useBudget();
 
   useEffect(() => {
     // If first time user, launch onboarding wizard automatically
@@ -48,7 +48,10 @@ function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white pb-28 sm:pb-12 w-full max-w-full overflow-x-hidden">
+    <div
+      data-theme={settings?.theme || 'emerald'}
+      className="min-h-screen flex flex-col bg-slate-950 text-slate-100 selection:bg-emerald-500 selection:text-white pb-28 sm:pb-12 w-full max-w-full overflow-x-hidden"
+    >
       {/* Header */}
       <Header 
         onOpenBudgetSetup={() => setIsBudgetSetupOpen(true)}

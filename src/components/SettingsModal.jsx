@@ -29,6 +29,7 @@ export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
 
   const [notificationTime, setNotificationTime] = useState(settings.notificationTime || '23:00');
   const [notificationEnabled, setNotificationEnabled] = useState(settings.notificationEnabled ?? true);
+  const [selectedTheme, setSelectedTheme] = useState(settings.theme || 'emerald');
   const [importStatus, setImportStatus] = useState(null);
   const [showPasteBox, setShowPasteBox] = useState(false);
   const [pasteText, setPasteText] = useState('');
@@ -36,11 +37,29 @@ export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
 
   if (!isOpen) return null;
 
+  const themeTemplates = [
+    { id: 'emerald', name: '🌲 Zümrüt Pusula', color: 'bg-emerald-500' },
+    { id: 'ocean', name: '🌊 Okyanus Safir', color: 'bg-cyan-500' },
+    { id: 'gold', name: '👑 Altın Kehribar', color: 'bg-amber-500' },
+    { id: 'purple', name: '🔮 Siber Mor', color: 'bg-purple-500' }
+  ];
+
+  const handleThemeSelect = (themeId) => {
+    setSelectedTheme(themeId);
+    updateSettings({
+      ...settings,
+      notificationTime,
+      notificationEnabled,
+      theme: themeId
+    });
+  };
+
   const handleSaveSettings = () => {
     updateSettings({
       ...settings,
       notificationTime,
-      notificationEnabled
+      notificationEnabled,
+      theme: selectedTheme
     });
     onClose();
   };
@@ -305,15 +324,29 @@ export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
             )}
           </div>
 
-          {/* Platform Guide */}
-          <div className="bg-slate-950/40 border border-slate-800/80 rounded-2xl p-3 sm:p-4 text-xs space-y-1.5">
-            <h4 className="font-bold text-slate-300 flex items-center gap-1.5">
-              <Smartphone className="w-4 h-4 text-emerald-400" />
-              <span>Mobilde (Telefonda) Nasıl Kullanılır?</span>
+          {/* Görsel Arayüz Tema Şablonları (4 Adet) */}
+          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl p-3.5 sm:p-4">
+            <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-2.5 flex items-center gap-2">
+              <Compass className="w-4 h-4 text-emerald-400" />
+              <span>Arayüz Tema Şablonları</span>
             </h4>
-            <p className="text-slate-400 text-[11px] leading-relaxed">
-              Telefonunuzun tarayıcısından linki açıp <strong>"Ana Ekrana Ekle" (Uygulama Olarak Yükle)</strong> butonuna bastığınızda, cihazınıza bağımsız bir mobil uygulama gibi kurulur ve çevrimdışı çalışır.
-            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {themeTemplates.map((tpl) => (
+                <button
+                  key={tpl.id}
+                  type="button"
+                  onClick={() => handleThemeSelect(tpl.id)}
+                  className={`py-2 px-3 rounded-xl text-xs font-bold flex items-center gap-2 border transition cursor-pointer ${
+                    selectedTheme === tpl.id
+                      ? 'bg-emerald-500/20 border-emerald-500 text-white'
+                      : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200'
+                  }`}
+                >
+                  <span className={`w-3 h-3 rounded-full ${tpl.color}`} />
+                  <span>{tpl.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
