@@ -9,7 +9,9 @@ import {
   Check, 
   AlertCircle,
   ShieldCheck,
-  Compass
+  Compass,
+  Copy,
+  ClipboardPaste
 } from 'lucide-react';
 import { useBudget } from '../context/BudgetContext';
 
@@ -21,12 +23,15 @@ export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
     enableNotifications, 
     sendTestNotification,
     handleExport,
+    getBackupCode,
     handleImport 
   } = useBudget();
 
   const [notificationTime, setNotificationTime] = useState(settings.notificationTime || '23:00');
   const [notificationEnabled, setNotificationEnabled] = useState(settings.notificationEnabled ?? true);
   const [importStatus, setImportStatus] = useState(null);
+  const [showPasteBox, setShowPasteBox] = useState(false);
+  const [pasteText, setPasteText] = useState('');
   const fileInputRef = useRef(null);
 
   if (!isOpen) return null;
@@ -38,6 +43,47 @@ export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
       notificationEnabled
     });
     onClose();
+  };
+
+  // 📋 MOBİL APK İÇİN TEK TIKLA YEDEK KODUNU PANOYA KOPYALAMA
+  const handleCopyBackupCode = async () => {
+    const code = getBackupCode();
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(code);
+      } else {
+        const tempArea = document.createElement('textarea');
+        tempArea.value = code;
+        document.body.appendChild(tempArea);
+        tempArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempArea);
+      }
+      setImportStatus({
+        type: 'success',
+        message: 'Yedek kodu panoya kopyalandı! Notlar veya WhatsApp\'a yapıştırıp saklayabilirsiniz.'
+      });
+    } catch (err) {
+      setPasteText(code);
+      setShowPasteBox(true);
+      setImportStatus({
+        type: 'success',
+        message: 'Yedek kodunuz aşağıdaki kutuda hazır, kopyalayabilirsiniz.'
+      });
+    }
+  };
+
+  // 📥 YAPIŞTIRILAN YEDEK KODUNU İÇERİ AKTARMA
+  const handlePasteImport = () => {
+    if (!pasteText.trim()) return;
+    const result = handleImport(pasteText.trim());
+    if (result.success) {
+      setImportStatus({ type: 'success', message: 'Veriler koddan başarıyla geri yüklendi!' });
+      setShowPasteBox(false);
+      setPasteText('');
+    } else {
+      setImportStatus({ type: 'error', message: 'Hatalı yedek kodu formatı.' });
+    }
   };
 
   const handleFileUpload = (e) => {
@@ -176,26 +222,66 @@ export default function SettingsModal({ isOpen, onClose, onOpenOnboarding }) {
               <span>Veri Yedekleme & Aktarım</span>
             </h4>
             <p className="text-[11px] text-slate-400 mb-3">
-              Sunucuya ihtiyaç duymadan verilerinizi telefonunuza veya bilgisayarınıza aktarmak için JSON yedeği alabilirsiniz.
+              Telefonda en hızlı yedekleme için <strong>Yedek Kodunu Kopyala</strong> butonuna basıp Notlar'a kaydedebilir, istediğiniz zaman geri yapıştırabilirsiniz.
             </p>
+
+            {/* Mobil APK dostu Tek Tıkla Kopyala / Yapıştır Butonları */}
+            <div className="flex items-center gap-2 mb-2">
+              <button
+                type="button"
+                onClick={handleCopyBackupCode}
+                className="flex-1 py-2.5 px-3 bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Yedek Kodunu Kopyala</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowPasteBox(!showPasteBox)}
+                className="flex-1 py-2.5 px-3 bg-blue-500/15 hover:bg-blue-500/25 border border-blue-500/30 text-blue-300 rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+              >
+                <ClipboardPaste className="w-3.5 h-3.5 text-blue-400" />
+                <span>Yedek Kodu Yapıştır</span>
+              </button>
+            </div>
+
+            {showPasteBox && (
+              <div className="mb-3 p-2.5 bg-slate-900 border border-slate-700 rounded-xl space-y-2 animate-fadeIn">
+                <textarea
+                  rows={3}
+                  value={pasteText}
+                  onChange={(e) => setPasteText(e.target.value)}
+                  placeholder='{"version":"2.2","config":...} yedek kodunu buraya yapıştırın'
+                  className="w-full p-2 bg-slate-950 border border-slate-800 rounded-lg text-[11px] text-slate-200 font-mono outline-none focus:border-emerald-500"
+                />
+                <button
+                  type="button"
+                  onClick={handlePasteImport}
+                  className="w-full py-2 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-lg transition cursor-pointer"
+                >
+                  Kodu Uygula ve Verileri Yükle
+                </button>
+              </div>
+            )}
 
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={handleExport}
-                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                className="flex-1 py-2 px-3 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5 text-blue-400" />
-                <span>Yedek İndir (JSON)</span>
+                <span>Dosya İndir (PC)</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1 py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                className="flex-1 py-2 px-3 bg-slate-800/80 hover:bg-slate-700 text-slate-300 rounded-xl text-[11px] font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer"
               >
                 <Upload className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Yedek Yükle</span>
+                <span>Dosya Seç</span>
               </button>
 
               <input

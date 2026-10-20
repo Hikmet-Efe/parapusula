@@ -168,11 +168,14 @@ export function saveSettings(settings) {
 }
 
 // --------------------------------------------------------------------------------------
-// 📦 TÜM VERİLERİMİ TEK BİR JSON DOSYASI OLARAK YEDEKLEME (EXPORT)
+// 📦 TÜM VERİLERİMİ TEK BİR JSON METNİ VEYA DOSYASI OLARAK YEDEKLEME (EXPORT)
 // --------------------------------------------------------------------------------------
-export function exportAllData() {
+// Mobil APK içinde WebView bazen dosya indirmeyi (Blob download) engellediği için,
+// hem direkt metin/kod olarak kopyalanabilen hem de dosya olarak indirilebilen
+// iki aşamalı bir yedekleme sistemi kurdum.
+export function getBackupJsonString() {
   const data = {
-    version: '2.0',
+    version: '2.2',
     exportDate: new Date().toISOString(),
     config: loadBudgetConfig(),
     debts: loadDebts(),
@@ -180,6 +183,12 @@ export function exportAllData() {
     settings: loadSettings(),
     onboarded: hasCompletedOnboarding()
   };
+  return JSON.stringify(data);
+}
+
+export function exportAllData() {
+  const jsonStr = getBackupJsonString();
+  const data = JSON.parse(jsonStr);
 
   // İndirilebilir JSON dosyası üretiyorum
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });

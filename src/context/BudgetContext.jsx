@@ -18,6 +18,7 @@ import {
   loadDebts,
   saveDebts,
   exportAllData,
+  getBackupJsonString,
   importAllData
 } from '../db/storage';
 import {
@@ -298,10 +299,15 @@ export function BudgetProvider({ children }) {
     setSelectedMonth(now.getMonth() + 1);
   };
 
-  // 📦 YEDEK ALMA VE YEDEK YÜKLEME SİSTEMİM (JSON)
+  // 📦 YEDEK ALMA VE YEDEK YÜKLEME SİSTEMİM (JSON & KOPYALA-YAPIŞTIR KODU)
   const handleExport = () => {
     triggerHaptic('medium');
     exportAllData();
+  };
+
+  const getBackupCode = () => {
+    triggerHaptic('light');
+    return getBackupJsonString();
   };
 
   const handleImport = (jsonStr) => {
@@ -343,6 +349,7 @@ export function BudgetProvider({ children }) {
         enableNotifications,
         sendTestNotification,
         handleExport,
+        getBackupCode,
         handleImport
       }}
     >
